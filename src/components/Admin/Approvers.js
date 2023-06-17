@@ -21,8 +21,8 @@ import {
   Select,
   ColumnLayout,
   Input,
-} from "@awsui/components-react";
-import { useCollection } from "@awsui/collection-hooks";
+} from "@cloudscape-design/components-react";
+import { useCollection } from "@cloudscape-design/collection-hooks";
 import {
   getAllApprovers,
   fetchAccounts,

@@ -5,7 +5,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
 import Logout from "./Logout";
-import { SpaceBetween, ColumnLayout } from "@awsui/components-react";
+import { SpaceBetween, ColumnLayout } from "@cloudscape-design/components-react";
 import "../../index.css";
 import teamlogo from "../../media/teamlogo.png";
 import params from "../../parameters.json";

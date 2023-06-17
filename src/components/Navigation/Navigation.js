@@ -3,8 +3,8 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import * as React from "react";
-import SideNavigation from "@awsui/components-react/side-navigation";
-import Icon from "@awsui/components-react/icon";
+import SideNavigation from "@cloudscape-design/components-react/side-navigation";
+import Icon from "@cloudscape-design/components-react/icon";
 import { useHistory } from "react-router-dom";
 
 function Navigation(props) {

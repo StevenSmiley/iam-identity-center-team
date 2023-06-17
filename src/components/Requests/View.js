@@ -14,8 +14,8 @@ import {
   CollectionPreferences,
   Modal,
   Select,
-} from "@awsui/components-react";
-import { useCollection } from "@awsui/collection-hooks";
+} from "@cloudscape-design/components-react";
+import { useCollection } from "@cloudscape-design/collection-hooks";
 import { getUserRequests, updateStatus, getSetting } from "../Shared/RequestService";
 import { API, graphqlOperation } from "aws-amplify";
 import { onUpdateRequests, onCreateRequests} from "../../graphql/subscriptions";

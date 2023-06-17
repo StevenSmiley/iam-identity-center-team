@@ -12,8 +12,8 @@ import {
   TextFilter,
   CollectionPreferences,
   SpaceBetween
-} from "@awsui/components-react";
-import { useCollection } from "@awsui/collection-hooks";
+} from "@cloudscape-design/components-react";
+import { useCollection } from "@cloudscape-design/collection-hooks";
 import { getSessionLogs, fetchLogs, getSession, deleteSessionLogs } from "../Shared/RequestService";
 import { API, graphqlOperation } from "aws-amplify";
 import {

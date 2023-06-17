@@ -22,8 +22,8 @@ import {
   ColumnLayout,
   Toggle,
   Input,
-} from "@awsui/components-react";
-import { useCollection } from "@awsui/collection-hooks";
+} from "@cloudscape-design/components-react";
+import { useCollection } from "@cloudscape-design/collection-hooks";
 import {
   fetchAccounts,
   fetchOUs,

@@ -2,15 +2,15 @@
 // This AWS Content is provided subject to the terms of the AWS Customer Agreement available at
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
-import Form from "@awsui/components-react/form";
-import FormField from "@awsui/components-react/form-field";
-import Input from "@awsui/components-react/input";
-import Select from "@awsui/components-react/select";
-import Container from "@awsui/components-react/container";
-import Header from "@awsui/components-react/header";
-import SpaceBetween from "@awsui/components-react/space-between";
-import Button from "@awsui/components-react/button";
-import Textarea from "@awsui/components-react/textarea";
+import Form from "@cloudscape-design/components-react/form";
+import FormField from "@cloudscape-design/components-react/form-field";
+import Input from "@cloudscape-design/components-react/input";
+import Select from "@cloudscape-design/components-react/select";
+import Container from "@cloudscape-design/components-react/container";
+import Header from "@cloudscape-design/components-react/header";
+import SpaceBetween from "@cloudscape-design/components-react/space-between";
+import Button from "@cloudscape-design/components-react/button";
+import Textarea from "@cloudscape-design/components-react/textarea";
 import { DatePicker } from "antd";
 import "../../index.css";
 import React, { useState, useEffect } from "react";
