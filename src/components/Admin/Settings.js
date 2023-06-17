@@ -3,14 +3,14 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import React, { useState, useEffect } from "react";
-import Box from "@cloudscape-design/components-react/box";
-import SpaceBetween from "@cloudscape-design/components-react/space-between";
-import Container from "@cloudscape-design/components-react/container";
-import Header from "@cloudscape-design/components-react/header";
-import ColumnLayout from "@cloudscape-design/components-react/column-layout";
-import Button from "@cloudscape-design/components-react/button";
-import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@cloudscape-design/components-react";
-import StatusIndicator from "@cloudscape-design/components-react/status-indicator";
+import Box from "@cloudscape-design/components/box";
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Container from "@cloudscape-design/components/container";
+import Header from "@cloudscape-design/components/header";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
+import Button from "@cloudscape-design/components/button";
+import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@cloudscape-design/components";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { Divider } from "antd";
 import "../../index.css";
 import { getSetting, createSetting, updateSetting } from "../Shared/RequestService";

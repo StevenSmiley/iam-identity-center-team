@@ -3,7 +3,7 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import React from "react";
-import StatusIndicator from "@cloudscape-design/components-react/status-indicator";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 function Status(props) {
   let status_type = "";

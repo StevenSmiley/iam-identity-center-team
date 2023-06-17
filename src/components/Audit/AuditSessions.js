@@ -16,7 +16,7 @@ import {
   ColumnLayout,
   ExpandableSection,
   Select,
-} from "@cloudscape-design/components-react";
+} from "@cloudscape-design/components";
 import { useCollection } from "@cloudscape-design/collection-hooks";
 import { Divider } from "antd";
 import { sessions } from "../Shared/RequestService";

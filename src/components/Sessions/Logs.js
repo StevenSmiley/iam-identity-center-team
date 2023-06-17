@@ -12,7 +12,7 @@ import {
   TextFilter,
   CollectionPreferences,
   SpaceBetween
-} from "@cloudscape-design/components-react";
+} from "@cloudscape-design/components";
 import { useCollection } from "@cloudscape-design/collection-hooks";
 import { getSessionLogs, fetchLogs, getSession, deleteSessionLogs } from "../Shared/RequestService";
 import { API, graphqlOperation } from "aws-amplify";

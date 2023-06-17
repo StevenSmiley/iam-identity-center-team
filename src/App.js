@@ -10,7 +10,7 @@ import Nav from "./components/Navigation/Nav";
 import home from "./media/Home.svg";
 import "./index.css";
 import { fetchGroups } from "./components/Shared/RequestService";
-import { Button } from "@cloudscape-design/components-react";
+import { Button } from "@cloudscape-design/components";
 
 const { Header, Content } = Layout;
 

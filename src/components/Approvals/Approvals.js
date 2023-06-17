@@ -17,7 +17,7 @@ import {
   FormField,
   ButtonDropdown,
   ColumnLayout,
-} from "@cloudscape-design/components-react";
+} from "@cloudscape-design/components";
 import { useCollection } from "@cloudscape-design/collection-hooks";
 import { API, graphqlOperation } from "aws-amplify";
 import {

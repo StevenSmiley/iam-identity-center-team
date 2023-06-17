@@ -21,7 +21,7 @@ import {
   Select,
   ColumnLayout,
   Input,
-} from "@cloudscape-design/components-react";
+} from "@cloudscape-design/components";
 import { useCollection } from "@cloudscape-design/collection-hooks";
 import {
   getAllApprovers,

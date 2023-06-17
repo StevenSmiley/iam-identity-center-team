@@ -14,7 +14,7 @@ import {
   CollectionPreferences,
   Modal,
   Select,
-} from "@cloudscape-design/components-react";
+} from "@cloudscape-design/components";
 import { useCollection } from "@cloudscape-design/collection-hooks";
 import { getSessionList } from "../Shared/RequestService";
 import Status from "../Shared/Status";

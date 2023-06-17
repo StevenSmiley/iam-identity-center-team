@@ -3,7 +3,7 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import React from "react";
-import { Box, SpaceBetween, ColumnLayout } from "@cloudscape-design/components-react";
+import { Box, SpaceBetween, ColumnLayout } from "@cloudscape-design/components";
 import { Divider } from "antd";
 import Status from "./Status";
 import Timer from "../Sessions/Timer";

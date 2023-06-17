@@ -3,11 +3,11 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import React, { useEffect, useState } from "react";
-import AppLayout from "@cloudscape-design/components-react/app-layout";
+import AppLayout from "@cloudscape-design/components/app-layout";
 import Navigation from "./Navigation";
 import ToolsDrawer from "./ToolsDrawer";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
-import Flashbar from "@cloudscape-design/components-react/flashbar";
+import Flashbar from "@cloudscape-design/components/flashbar";
 import Request from "../Requests/Request";
 import Approvals from "../Approvals/Approvals";
 import Approvers from "../Admin/Approvers";
