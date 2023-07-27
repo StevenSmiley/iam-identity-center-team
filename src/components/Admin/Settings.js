@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import Box from "@awsui/components-react/box";
 import SpaceBetween from "@awsui/components-react/space-between";
-import Select from "@cawsui/components/select";
+import Select from "@awsui/components/select";
 import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
