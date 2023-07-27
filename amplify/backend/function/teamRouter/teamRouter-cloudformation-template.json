@@ -112,6 +112,9 @@
                 "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:SettingsTable:Name"
               }
             },
+            "NOTIFICATION_TOPIC_ARN": {
+              "Fn::ImportValue": "NotificationTopicArn"
+            },
             "API_TEAM_GRAPHQLAPIENDPOINTOUTPUT": {
               "Ref": "apiteamGraphQLAPIEndpointOutput"
             },
