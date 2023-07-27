@@ -18,8 +18,8 @@ import {
   FormField,
   ColumnLayout,
   ExpandableSection,
-} from "@cloudscape-design/components";
-import { useCollection } from "@cloudscape-design/collection-hooks";
+} from "@awsui/components-react";
+import { useCollection } from "@awsui/collection-hooks";
 import { useHistory } from "react-router-dom";
 import { sessions, updateStatus, getSetting} from "../Shared/RequestService";
 import { API, graphqlOperation } from "aws-amplify";

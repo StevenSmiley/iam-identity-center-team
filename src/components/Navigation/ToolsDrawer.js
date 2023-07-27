@@ -3,7 +3,7 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import * as React from "react";
-import HelpPanel from "@cloudscape-design/components/help-panel";
+import HelpPanel from "@awsui/components-react/help-panel";
 
 function ToolsDrawer() {
   return (

@@ -3,16 +3,16 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import { React, useState } from "react";
-import Box from "@cloudscape-design/components/box";
+import Box from "@awsui/components-react/box";
 import { useHistory } from "react-router-dom";
-import Button from "@cloudscape-design/components/button";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import Container from "@cloudscape-design/components/container";
-import FormField from "@cloudscape-design/components/form-field";
-import Grid from "@cloudscape-design/components/grid";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-// import Link from "@cloudscape-design/components/link";
-import Select from "@cloudscape-design/components/select";
+import Button from "@awsui/components-react/button";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import Container from "@awsui/components-react/container";
+import FormField from "@awsui/components-react/form-field";
+import Grid from "@awsui/components-react/grid";
+import SpaceBetween from "@awsui/components-react/space-between";
+// import Link from "@awsui/components-react/link";
+import Select from "@awsui/components-react/select";
 import team from "../../media/team.png";
 import "../../media/landing-page.css";
 

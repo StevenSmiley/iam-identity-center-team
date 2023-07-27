@@ -31953,7 +31953,7 @@ Apache License
 
 ******************************
 
-@cloudscape-design/collection-hooks
+@awsui/collection-hooks
 1.0.21 <>
 Apache License
 Version 2.0, January 2004
@@ -32160,7 +32160,7 @@ limitations under the License.
 
 ******************************
 
-@cloudscape-design/components
+@awsui/components-react
 3.0.312 <>
 Apache License
 Version 2.0, January 2004
@@ -32367,7 +32367,7 @@ limitations under the License.
 
 ******************************
 
-@cloudscape-design/global-styles
+@awsui/global-styles
 1.0.10 <>
 Apache License
 Version 2.0, January 2004
@@ -32574,7 +32574,7 @@ limitations under the License.
 
 ******************************
 
-@cloudscape-design/test-utils-core
+@awsui/test-utils-core
 1.0.11 <>
 Apache License
 Version 2.0, January 2004
@@ -32781,7 +32781,7 @@ limitations under the License.
 
 ******************************
 
-@cloudscape-design/theming-core
+@awsui/theming-core
 1.0.30 <>
 Apache License
 Version 2.0, January 2004

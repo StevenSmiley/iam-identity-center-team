@@ -16,8 +16,8 @@ import {
   ColumnLayout,
   ExpandableSection,
   Select,
-} from "@cloudscape-design/components";
-import { useCollection } from "@cloudscape-design/collection-hooks";
+} from "@awsui/components-react";
+import { useCollection } from "@awsui/collection-hooks";
 import { Divider } from "antd";
 import { sessions } from "../Shared/RequestService";
 import { API, graphqlOperation } from "aws-amplify";
