@@ -25,6 +25,7 @@ revoke = os.getenv("REVOKE_SM")
 reject = os.getenv("REJECT_SM")
 schedule = os.getenv("SCHEDULE_SM")
 approval = os.getenv("APPROVAL_SM")
+notification_topic_arn = os.getenv("NOTIFICATION_TOPIC_ARN")
 
 
 def list_account_for_ou(ouId):
@@ -94,8 +95,10 @@ def list_idc_group_membership(userId):
             MemberId={
                 'UserId': userId
             })
+        all_idc_groups = []
         for page in paginator:
-            return page["GroupMemberships"]
+            all_idc_groups.extend(page["GroupMemberships"])
+        return all_idc_groups
     except ClientError as e:
         print(e.response['Error']['Message'])
         return []
@@ -197,13 +200,13 @@ def get_user(username):
         print(e.response['Error']['Message'])
 
 
-def invoke_approval_sm(request, sm_arn):
+def invoke_approval_sm(request, sm_arn, notification_config):
     sfn_client = boto3.client('stepfunctions')
     try:
         response = sfn_client.start_execution(
             stateMachineArn=sm_arn,
             name=request["id"],
-            input=(json.dumps(request)))
+            input=(json.dumps({**request, **notification_config})))
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:
@@ -270,10 +273,22 @@ def check_settings():
     approval_required = item_settings.get("approval", True)
     expiry = int(item_settings.get("expiry", 3)) * 60 * 60
     max_duration = item_settings.get("duration", "9")
-    return {"approval_required": approval_required, "expiry": expiry, "max_duration":max_duration}
+    notification_service = item_settings.get("notificationService")
+    source_email = item_settings.get("sourceEmail")
+    notification_config = {
+    "notification_service": notification_service,
+    "source_email": source_email,
+    "notification_topic_arn": notification_topic_arn,
+    }
+    return {
+        "approval_required": approval_required, 
+        "expiry": expiry, 
+        "max_duration": max_duration,
+        "notification_config": notification_config,
+    }
 
         
-def invoke_workflow(request, approval_required):
+def invoke_workflow(request, approval_required, notification_config):
     workflow = None
     if approval_required and request["status"] == "pending":
         print("sending approval")
@@ -303,7 +318,7 @@ def invoke_workflow(request, approval_required):
     else:
         print("no action")
     if workflow:
-        invoke_approval_sm(request, workflow)
+        invoke_approval_sm(request, workflow, notification_config)
 
 def get_email(username):
     cognito = boto3.client('cognito-idp', config=Config(user_agent_extra="team-idc"))
@@ -389,8 +404,10 @@ def list_group_membership(groupId):
         paginator = p.paginate(IdentityStoreId=sso_instance['IdentityStoreId'],
         GroupId=groupId,
         )
+        all_groups = []
         for page in paginator:
-            return page["GroupMemberships"]
+            all_groups.extend(page["GroupMemberships"])
+        return all_groups
     except ClientError as e:
         print(e.response['Error']['Message'])
         
@@ -401,11 +418,11 @@ async def get_approvers_details(accountId):
     if approver_groups:
         for group in approver_groups:
             approvers_data = [get_approvers(result["MemberId"]["UserId"])
-              for result in list_group_membership(group)]
+                for result in list_group_membership(group)]
             for data in approvers_data:
                 if data["approver"] not in approvers:
                     approvers.append(data["approver"])
-                    approver_ids.append(data["approver_id"])
+                    approver_ids.append(data["approver_id"].lower())
     return {"approvers":approvers, "approver_ids":approver_ids}
 
 async def updateRequestDetails(request_id, username, accountId, roleId):
@@ -465,6 +482,7 @@ def handler(event, context):
     if request_is_updated(status,data,username,request_id):
         settings = check_settings()
         approval_required = settings["approval_required"]
+        notification_config = settings["notification_config"]
         expiry_time = settings["expiry"]
         request = get_request_data(data, expiry_time, approval_required)
         if int(request["time"]) > int(settings["max_duration"]):
@@ -482,7 +500,7 @@ def handler(event, context):
             if approval_required:
                 approval_required = eligible["approval"]
                 request["approvalRequired"] = eligible["approval"]
-            invoke_workflow(request, approval_required)
+            invoke_workflow(request, approval_required, notification_config)
     else:
         print("Request not updated")
         

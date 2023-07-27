@@ -235,6 +235,8 @@ export const createSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
     }
   }
 `;
@@ -253,6 +255,8 @@ export const updateSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
     }
   }
 `;
@@ -271,6 +275,8 @@ export const deleteSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
     }
   }
 `;

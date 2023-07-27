@@ -3,19 +3,21 @@
 // http://aws.amazon.com/agreement or other written agreement between Customer and either
 // Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 import React, { useState, useEffect } from "react";
-import Box from "@cloudscape-design/components/box";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-import Container from "@cloudscape-design/components/container";
-import Header from "@cloudscape-design/components/header";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import Button from "@cloudscape-design/components/button";
-import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@cloudscape-design/components";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
+import Box from "@awsui/components-react/box";
+import SpaceBetween from "@awsui/components-react/space-between";
+import Select from "@cawsui/components/select";
+import Container from "@awsui/components-react/container";
+import Header from "@awsui/components-react/header";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import Button from "@awsui/components-react/button";
+import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@awsui/components-react";
+import StatusIndicator from "@awsui/components-react/status-indicator";
 import { Divider } from "antd";
 import "../../index.css";
 import { getSetting, createSetting, updateSetting } from "../Shared/RequestService";
 
 function Settings(props) {
+  // TODO: setNotificationServiceError and setSourceEmailError?
   const [duration, setDuration] = useState(null);
   const [durationError, setDurationError] = useState("")
   const [expiry, setExpiry] = useState(null);
@@ -23,6 +25,8 @@ function Settings(props) {
   const [comments, setComments] = useState(null);
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
+  const [notificationService, setNotificationService] = useState(null);
+  const [sourceEmail, setSourceEmail] = useState(null);
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
@@ -92,12 +96,16 @@ function Settings(props) {
         setComments(data.comments);
         setTicketNo(data.ticketNo);
         setApproval(data.approval);
+        setNotificationService(data.notificationService);
+        setSourceEmail(data.sourceEmail);
       } else {
         setDuration("9");
         setExpiry("3");
         setComments(true);
         setTicketNo(true);
         setApproval(true);
+        setNotificationService("None");
+        setSourceEmail("");
       }
     });
   }
@@ -129,7 +137,7 @@ function Settings(props) {
               </div>
               <div>
                 <Box variant="awsui-key-label">Max request duration</Box>
-               <> {duration !== null ?  <div>{duration} hours</div> : <Spinner />  }</>
+                <> {duration !== null ?  <div>{duration} hours</div> : <Spinner />  }</>
               </div>
               <div>
                 <Box variant="awsui-key-label">Request expiry timeout</Box>
@@ -167,6 +175,21 @@ function Settings(props) {
                 </div>
                 :<Spinner /> 
                 }</>
+              </div>
+            </SpaceBetween>
+            <SpaceBetween size="l">
+              <div>
+                <Box variant="h3">Notification settings</Box>
+                <Box variant="small">Notification settings for request and approval events</Box>
+                <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Notification service</Box>
+                <> {notificationService !== null ?  <div>{notificationService}</div> : <Spinner />  }</>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">SES source email</Box>
+                <> {sourceEmail !== null ? <div>{sourceEmail}</div> : <Spinner /> }</>
               </div>
             </SpaceBetween>
           </ColumnLayout>
@@ -264,7 +287,7 @@ function Settings(props) {
                 </Toggle>
               </FormField>
               <div>
-                <Box variant="h3">Workflow Settings</Box>
+                <Box variant="h3">Workflow settings</Box>
                 <Box variant="small">Request approval workflow settings</Box>
                 <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
@@ -279,6 +302,40 @@ function Settings(props) {
                 >
                   Approval required
                 </Toggle>
+              </FormField>
+              <div>
+                <Box variant="h3">Notification settings</Box>
+                <Box variant="small">Notification settings for request and approval events</Box>
+                <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
+              </div>
+              <FormField
+                label="Notification service"
+                stretch
+                description="The AWS service to use to send notifications about request and approval events"
+              >
+                <Select
+                  value={notificationService}
+                  onChange={(event) => setNotificationService(event.detail.value)}
+                  selectedOption={notificationService}
+                >
+                  Notification service
+                  <option value="SES">SES</option>
+                  <option value="SNS">SNS</option>
+                  <option value="None">None</option>
+                </Select>
+              </FormField>
+              <FormField
+                label="Source email"
+                stretch
+                description="Email address to send notifications from, when using SES as the notification service. Must be verified in SES."
+              >
+                <Input
+                  value={sourceEmail}
+                  onChange={(event) => setSourceEmail(event.detail.value)}
+                  // TODO: setSourceEmailError?
+                >
+                  Source email
+                </Input>
               </FormField>
             </SpaceBetween>
           </Form>

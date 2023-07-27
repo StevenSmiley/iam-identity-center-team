@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Temporary Elevated Access Management (TEAM) Application stack
 Parameters:
-  Source:
-    Type: String
-    Description: Email notification source
   Login:
     Type: String
     Description: IAM IDC Login URL
@@ -13,6 +10,10 @@ Parameters:
   teamAuditGroup:
     Type: String
     Description: TEAM application Auditor group
+  tags:
+    Type: String
+    Description: TEAM application tags
+    Default: ""
 
 Resources:
   TriggerAmplifyBuild:
@@ -76,7 +77,7 @@ Resources:
                 - npm i -S graphql-ttl-transformer
                 - '# Execute Amplify CLI with the helper script'
                 - update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.9 11
-                - /usr/local/bin/pip3.9 install --user pipenv
+                - /usr/local/bin/pip3.9 install --user pipenv==2023.6.12
                 - amplifyPush --simple --allow-destructive-graphql-schema-update
         frontend:
           phases:
@@ -105,14 +106,14 @@ Resources:
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
       EnvironmentVariables: 
-        - Name: EMAIL_SOURCE
-          Value: !Ref Source
         - Name: SSO_LOGIN
           Value: !Ref Login
         - Name: TEAM_ADMIN_GROUP
           Value: !Ref teamAdminGroup
         - Name: TEAM_AUDITOR_GROUP
           Value: !Ref teamAuditGroup
+        - Name: TAGS
+          Value: !Ref tags
       Tags:
         - Key: Branch
           Value: main
