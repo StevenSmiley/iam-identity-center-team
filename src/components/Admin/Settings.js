@@ -128,7 +128,7 @@ function Settings(props) {
             </Header>
           }
         >
-          <ColumnLayout columns={3} variant="text-grid">
+          <ColumnLayout columns={4} variant="text-grid">
             <SpaceBetween size="l">
               <div>
                 <Box variant="h3">Timer settings</Box>
