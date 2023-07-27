@@ -6,28 +6,33 @@
     }
   },
   "Resources": {
-      "snsNotificationTopic": {
-          "Type": "AWS::SNS::Topic",
-          "Properties": {
-              "TopicName": { "Fn::Join": [
-                "",
-                [
-                  "TeamNotifications",
-                  "-",
-                  {
-                    "Ref": "env"
-                  }
-                ]
-              ] }
-          }
+    "snsNotificationTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Fn::Join": [
+            "",
+            [
+              "TeamNotifications",
+              "-",
+              {
+                "Ref": "env"
+              }
+            ]
+          ]
+        }
       }
+    }
   },
   "Outputs": {
-      "NotificationTopicArn": {
-          "Description": "The ARN of the SNS topic where TEAM notifications will be sent",
-          "Value": {
-              "Ref":"snsNotificationTopic"
-          }
+    "NotificationTopicArn": {
+      "Description": "The ARN of the SNS topic where TEAM notifications will be sent",
+      "Value": {
+        "Ref": "snsNotificationTopic"
+      },
+      "Export": {
+        "Name": "NotificationTopicArn"
       }
+    }
   }
 }
