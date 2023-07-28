@@ -318,7 +318,7 @@ function Settings(props) {
               >
                 <Select
                   value={notificationService}
-                  onChange={(event) => setNotificationService(event.detail.value)}
+                  onChange={(detail) => setNotificationService(detail.value)}
                   options={[
                     { label: "SES", value: "SES" },
                     { label: "SNS", value: "SNS" },
