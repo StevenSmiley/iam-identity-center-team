@@ -317,11 +317,13 @@ function Settings(props) {
                   value={notificationService}
                   onChange={(event) => setNotificationService(event.detail.value)}
                   selectedOption={notificationService}
+                  options={[
+                    { label: "SES", value: "SES" },
+                    { label: "SNS", value: "SNS" },
+                    { label: "None", value: "None" },
+                  ]}
                 >
                   Notification service
-                  <option value="SES">SES</option>
-                  <option value="SNS">SNS</option>
-                  <option value="None">None</option>
                 </Select>
               </FormField>
               <FormField
