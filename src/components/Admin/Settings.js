@@ -319,8 +319,8 @@ function Settings(props) {
                   onChange={({ detail }) => setNotificationService(detail.value)}
                   value={notificationService}
                   items={[
-                    { label: "SES", value: "SES" },
-                    { label: "SNS", value: "SNS" },
+                    { label: "Amazon SES", value: "SES" },
+                    { label: "Amazon SNS", value: "SNS" },
                     { label: "None", value: "None" },
                   ]}
                 >
