@@ -258,6 +258,8 @@ export const getSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
     }
   }
 `;
@@ -278,6 +280,8 @@ export const listSettings = /* GraphQL */ `
         modifiedBy
         createdAt
         updatedAt
+        notificationService
+      sourceEmail
       }
       nextToken
     }
