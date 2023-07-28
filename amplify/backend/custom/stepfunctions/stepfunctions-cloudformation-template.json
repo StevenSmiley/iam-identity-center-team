@@ -423,6 +423,13 @@
                 },
                 {
                   "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Fn::ImportValue": "NotificationTopicArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
                   "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
                   "Resource": {
                     "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
@@ -501,6 +508,13 @@
                   "Effect": "Allow",
                   "Action": "ses:SendEmail",
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Fn::ImportValue": "NotificationTopicArn"
+                  }
                 },
                 {
                   "Effect": "Allow",
@@ -588,6 +602,13 @@
                 },
                 {
                   "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Fn::ImportValue": "NotificationTopicArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
                   "Action": ["sso:DeleteAccountAssignment"],
                   "Resource": "*"
                 },
@@ -662,6 +683,13 @@
                   "Effect": "Allow",
                   "Action": "ses:SendEmail",
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Fn::ImportValue": "NotificationTopicArn"
+                  }
                 },
                 {
                   "Effect": "Allow",
