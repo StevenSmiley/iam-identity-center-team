@@ -17,7 +17,7 @@ import "../../index.css";
 import { getSetting, createSetting, updateSetting } from "../Shared/RequestService";
 
 function Settings(props) {
-  // TODO: setNotificationServiceError and setSourceEmailError?
+  // TODO: setSourceEmailError
   const [duration, setDuration] = useState(null);
   const [durationError, setDurationError] = useState("")
   const [expiry, setExpiry] = useState(null);
@@ -335,7 +335,7 @@ function Settings(props) {
                 <Input
                   value={sourceEmail}
                   onChange={(event) => setSourceEmail(event.detail.value)}
-                  // TODO: setSourceEmailError?
+                  // TODO: setSourceEmailError
                 >
                   Source email
                 </Input>
