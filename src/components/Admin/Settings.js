@@ -70,6 +70,8 @@ function Settings(props) {
         comments,
         ticketNo,
         approval,
+        notificationService,
+        sourceEmail,
       };
       const action = item === null ? createSetting : updateSetting;
       action(data).then(() => {
