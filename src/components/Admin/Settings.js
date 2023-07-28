@@ -99,7 +99,6 @@ function Settings(props) {
         setTicketNo(data.ticketNo);
         setApproval(data.approval);
         setNotificationService(data.notificationService);
-        console.log("data.notificationService:", data.notificationService);
         setSourceEmail(data.sourceEmail);
       } else {
         setDuration("9");
