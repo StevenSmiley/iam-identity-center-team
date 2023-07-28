@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import Box from "@awsui/components-react/box";
 import SpaceBetween from "@awsui/components-react/space-between";
-import Select from "@awsui/components-react/select";
+import RadioGroup from "@awsui/components-react/radio-group";
 import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
@@ -315,17 +315,17 @@ function Settings(props) {
                 stretch
                 description="The AWS service to use to send notifications about request and approval events"
               >
-                <Select
-                  selectedOption={{label: notificationService, value: notificationService}}
-                  onChange={(detail) => setNotificationService(detail.value)}
-                  options={[
+                <RadioGroup
+                  onChange={({ detail }) => setNotificationService(detail.value)}
+                  value={notificationService}
+                  items={[
                     { label: "SES", value: "SES" },
                     { label: "SNS", value: "SNS" },
                     { label: "None", value: "None" },
                   ]}
                 >
                   Notification service
-                </Select>
+                </RadioGroup>
               </FormField>
               <FormField
                 label="Source email"
