@@ -316,13 +316,9 @@ function Settings(props) {
                 description="The AWS service to use to send notifications about request and approval events"
               >
                 <Select
-                  value={notificationService}
+                  selectedOption={notificationService}
                   onChange={(detail) => setNotificationService(detail.value)}
-                  options={[
-                    { label: "SES", value: "SES" },
-                    { label: "SNS", value: "SNS" },
-                    { label: "None", value: "None" },
-                  ]}
+                  options={["SES", "SNS", "None"]}
                 >
                   Notification service
                 </Select>
