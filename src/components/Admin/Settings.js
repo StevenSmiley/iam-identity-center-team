@@ -25,7 +25,10 @@ function Settings(props) {
   const [comments, setComments] = useState(null);
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
-  const [notificationService, setNotificationService] = useState(null);
+  const [notificationService, setNotificationService] = useState({
+  label: "None",
+  value: "None",
+});
   const [sourceEmail, setSourceEmail] = useState(null);
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -98,7 +101,10 @@ function Settings(props) {
         setComments(data.comments);
         setTicketNo(data.ticketNo);
         setApproval(data.approval);
-        setNotificationService(data.notificationService);
+        setNotificationService({
+          label: data.notificationService,
+          value: data.notificationService,
+        });
         setSourceEmail(data.sourceEmail);
       } else {
         setDuration("9");
@@ -106,7 +112,10 @@ function Settings(props) {
         setComments(true);
         setTicketNo(true);
         setApproval(true);
-        setNotificationService("None");
+        setNotificationService({
+          label: "None",
+          value: "None",
+        });
         setSourceEmail("");
       }
     });
@@ -186,8 +195,8 @@ function Settings(props) {
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                <Box variant="awsui-key-label">Notification service</Box>
-                <> {notificationService !== null ?  <div>{notificationService}</div> : <Spinner />  }</>
+              <Box variant="awsui-key-label">Notification service</Box>
+                <> {notificationService !== null ? <div>{notificationService.label}</div> : <Spinner />}</>
               </div>
               <div>
                 <Box variant="awsui-key-label">SES source email</Box>
@@ -317,8 +326,15 @@ function Settings(props) {
               >
                 <Select
                   selectedOption={notificationService}
-                  onChange={(detail) => setNotificationService(detail.value)}
-                  options={["SES", "SNS", "None"]}
+                  onChange={(detail) => setNotificationService({
+                    label: detail.label,
+                    value: detail.value,
+                  })}
+                  options={[
+                    { label: "SES", value: "SES" },
+                    { label: "SNS", value: "SNS" },
+                    { label: "None", value: "None" },
+                  ]}
                 >
                   Notification service
                 </Select>
