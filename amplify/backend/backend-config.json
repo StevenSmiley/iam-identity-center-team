@@ -314,6 +314,11 @@
       ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "teamNotifyWebook": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "hosting": {
@@ -561,6 +566,22 @@
         {
           "category": "function",
           "resourceName": "teamqueryLogs"
+        }
+      ]
+    },
+    "AMPLIFY_function_teamNotifyWebook_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "teamNotifyWebook"
+        }
+      ]
+    },
+    "AMPLIFY_function_teamNotifyWebook_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "teamNotifyWebook"
         }
       ]
     },
