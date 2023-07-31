@@ -315,7 +315,7 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "teamNotifyWebook": {
+    "teamNotifyWebhook": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
@@ -569,19 +569,19 @@
         }
       ]
     },
-    "AMPLIFY_function_teamNotifyWebook_deploymentBucketName": {
+    "AMPLIFY_function_teamNotifyWebhook_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "teamNotifyWebook"
+          "resourceName": "teamNotifyWebhook"
         }
       ]
     },
-    "AMPLIFY_function_teamNotifyWebook_s3Key": {
+    "AMPLIFY_function_teamNotifyWebhook_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "teamNotifyWebook"
+          "resourceName": "teamNotifyWebhook"
         }
       ]
     },
