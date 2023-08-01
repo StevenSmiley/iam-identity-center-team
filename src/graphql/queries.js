@@ -260,6 +260,7 @@ export const getSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
+      webhookURL
     }
   }
 `;
@@ -281,7 +282,8 @@ export const listSettings = /* GraphQL */ `
         createdAt
         updatedAt
         notificationService
-      sourceEmail
+        sourceEmail
+        webhookURL
       }
       nextToken
     }

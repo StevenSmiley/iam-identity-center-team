@@ -95,6 +95,7 @@ type Settings
   modifiedBy: String
   notificationService: String
   sourceEmail: String
+  webhookURL: String
 }
 type data {
   name: String

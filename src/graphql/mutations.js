@@ -237,6 +237,7 @@ export const createSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
+      webhookURL
     }
   }
 `;
@@ -257,6 +258,7 @@ export const updateSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
+      webhookURL
     }
   }
 `;
@@ -277,6 +279,7 @@ export const deleteSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
+      webhookURL
     }
   }
 `;
