@@ -116,6 +116,13 @@
           ],
           "category": "function",
           "resourceName": "teamStatus"
+        },
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "teamNotifyWebhook"
         }
       ],
       "providerPlugin": "awscloudformation",
