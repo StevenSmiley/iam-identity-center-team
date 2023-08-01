@@ -275,10 +275,12 @@ def check_settings():
     max_duration = item_settings.get("duration", "9")
     notification_service = item_settings.get("notificationService")
     source_email = item_settings.get("sourceEmail")
+    webhook_url = item_settings.get("webhookURL")
     notification_config = {
     "notification_service": notification_service,
     "source_email": source_email,
     "notification_topic_arn": notification_topic_arn,
+    "webhook_url": webhook_url,
     }
     return {
         "approval_required": approval_required, 
