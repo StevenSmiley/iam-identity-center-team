@@ -374,7 +374,7 @@ function Settings(props) {
                   label="Webhook URL"
                   stretch
                   description="Webhook URL to send notifications to."
-                  error={webhookURLError}
+                  errorText={webhookURLError}
                 >
                   <Input
                     value={webhookURL}
