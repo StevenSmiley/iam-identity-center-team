@@ -115,6 +115,7 @@ function Settings(props) {
         setApproval(data.approval);
         setNotificationService(data.notificationService);
         setSourceEmail(data.sourceEmail);
+        setWebhookURL(data.webhookURL);
       } else {
         setDuration("9");
         setExpiry("3");
@@ -123,6 +124,7 @@ function Settings(props) {
         setApproval(true);
         setNotificationService("None");
         setSourceEmail("");
+        setWebhookURL("");
       }
     });
   }
