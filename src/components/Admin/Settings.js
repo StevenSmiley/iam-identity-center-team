@@ -17,7 +17,6 @@ import "../../index.css";
 import { getSetting, createSetting, updateSetting } from "../Shared/RequestService";
 
 function Settings(props) {
-  // TODO: setSourceEmailError
   const [duration, setDuration] = useState(null);
   const [durationError, setDurationError] = useState("")
   const [expiry, setExpiry] = useState(null);
@@ -26,7 +25,10 @@ function Settings(props) {
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
   const [notificationService, setNotificationService] = useState(null);
+  const [webhookURL, setWebhookURL] = useState("");
+  const [webhookURLError, setWebhookURLError] = useState("");
   const [sourceEmail, setSourceEmail] = useState(null);
+  const [sourceEmailError, setSourceEmailError] = useState(null);
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
@@ -51,6 +53,8 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
+      // TODO: validate webhookUrl is a valid URL
+      // TODO: validate sourceEmail is a valid email address
       return error;
     }
 
@@ -72,6 +76,7 @@ function Settings(props) {
         approval,
         notificationService,
         sourceEmail,
+        webhookURL,
       };
       const action = item === null ? createSetting : updateSetting;
       action(data).then(() => {
@@ -321,25 +326,49 @@ function Settings(props) {
                   items={[
                     { label: "Amazon SES", value: "SES" },
                     { label: "Amazon SNS", value: "SNS" },
+                    { label: "Webhook", value: "webhook" },
                     { label: "None", value: "None" },
                   ]}
                 >
                   Notification service
                 </RadioGroup>
               </FormField>
-              <FormField
-                label="Source email"
-                stretch
-                description="Email address to send notifications from, when using SES as the notification service. Must be verified in SES."
-              >
-                <Input
-                  value={sourceEmail}
-                  onChange={(event) => setSourceEmail(event.detail.value)}
-                  // TODO: setSourceEmailError
+              {notificationService === "SES" && (
+                <FormField
+                  label="Source email"
+                  stretch
+                  description="Email address to send notifications from, when using SES as the notification service. Must be verified in SES."
+                  errorText={sourceEmailError}
                 >
-                  Source email
-                </Input>
-              </FormField>
+                  <Input
+                    value={sourceEmail}
+                    onChange={(event) => {
+                      setSourceEmailError()
+                      setSourceEmail(event.detail.value)
+                    }}
+                  >
+                    Source email
+                  </Input>
+                </FormField>
+              )}
+              {notificationService === "webhook" && (
+                <FormField
+                  label="Webhook URL"
+                  stretch
+                  description="Webhook URL to send notifications to."
+                  error={webhookURLError}
+                >
+                  <Input
+                    value={webhookURL}
+                    onChange={(event) => {
+                      setWebhookURLError()
+                      setWebhookURL(event.detail.value)
+                    }}
+                  >
+                    Webhook URL
+                  </Input>
+                </FormField>
+              )}
             </SpaceBetween>
           </Form>
         </Modal>
