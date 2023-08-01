@@ -45,6 +45,9 @@ function Settings(props) {
   
     async function validate() {
       let error = false;
+      const urlRegex = /^(http|https):\/\/[^ "]+$/;
+      const emailRegex = /\S+@\S+\.\S+/;
+    
       if (!duration || isNaN(duration) || Number(duration) > 8000 ||  Number(duration) < 1) {
         setDurationError(`Enter valid duration as a number between 1 - 8000`);
         error = true;
@@ -53,10 +56,17 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
-      // TODO: validate webhookUrl is a valid URL
-      // TODO: validate sourceEmail is a valid email address
+      if (!webhookURL || !urlRegex.test(webhookURL)) {
+        setWebhookURLError(`Enter a valid URL`);
+        error = true;
+      }
+      if (!sourceEmail || !emailRegex.test(sourceEmail)) {
+        setSourceEmailError(`Enter a valid email address`);
+        error = true;
+      }
       return error;
     }
+    
 
   function handleEdit() {
     setVisible(true);
