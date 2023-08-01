@@ -341,7 +341,15 @@ function Settings(props) {
                 description="The AWS service to use to send notifications about request and approval events"
               >
                 <RadioGroup
-                  onChange={({ detail }) => setNotificationService(detail.value)}
+                  onChange={({ detail }) => {
+                    setNotificationService(detail.value)
+                    if (notificationService === "SES") { setWebhookURL("") }
+                    if (notificationService === "Webhook") { setSourceEmail("") }
+                    if (notificationService === "SNS" | notificationService === "None") {
+                      setWebhookURL("")
+                      setSourceEmail("")
+                    }
+                  }}
                   value={notificationService}
                   items={[
                     { label: "Amazon SES", value: "SES" },
