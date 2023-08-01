@@ -204,10 +204,18 @@ function Settings(props) {
                 <Box variant="awsui-key-label">Notification service</Box>
                 <> {notificationService !== null ?  <div>{notificationService}</div> : <Spinner />  }</>
               </div>
+              {notificationService === "SES" && (
               <div>
                 <Box variant="awsui-key-label">SES source email</Box>
                 <> {sourceEmail !== null ? <div>{sourceEmail}</div> : <Spinner /> }</>
               </div>
+              )}
+              {notificationService === "Webhook" && (
+              <div>
+                <Box variant="awsui-key-label">Webhook URL</Box>
+                <> {webhookURL !== null ? <div>{webhookURL}</div> : <Spinner /> }</>
+              </div>
+              )}
             </SpaceBetween>
           </ColumnLayout>
         </Container>
@@ -336,7 +344,7 @@ function Settings(props) {
                   items={[
                     { label: "Amazon SES", value: "SES" },
                     { label: "Amazon SNS", value: "SNS" },
-                    { label: "Webhook", value: "webhook" },
+                    { label: "Webhook", value: "Webhook" },
                     { label: "None", value: "None" },
                   ]}
                 >
@@ -361,7 +369,7 @@ function Settings(props) {
                   </Input>
                 </FormField>
               )}
-              {notificationService === "webhook" && (
+              {notificationService === "Webhook" && (
                 <FormField
                   label="Webhook URL"
                   stretch
