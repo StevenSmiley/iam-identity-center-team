@@ -72,6 +72,15 @@ function Settings(props) {
     setVisible(true);
   }
   function handleDismiss() {
+    // Reset item states
+    setDuration(item.duration);
+    setExpiry(item.expiry);
+    setComments(item.comments);
+    setTicketNo(item.ticketNo);
+    setApproval(item.approval);
+    setNotificationService(item.notificationService);
+    setSourceEmail(item.sourceEmail);
+    setWebhookURL(item.webhookURL);
     setVisible(false);
   }
   async function handleSubmit() {
