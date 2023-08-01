@@ -56,11 +56,11 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
-      if (!webhookURL || !urlRegex.test(webhookURL)) {
+      if (notificationService === "Webhook" && !urlRegex.test(webhookURL)) {
         setWebhookURLError(`Enter a valid URL`);
         error = true;
       }
-      if (!sourceEmail || !emailRegex.test(sourceEmail)) {
+      if (notificationService === "SES" && !emailRegex.test(sourceEmail)) {
         setSourceEmailError(`Enter a valid email address`);
         error = true;
       }
