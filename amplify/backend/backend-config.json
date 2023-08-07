@@ -122,7 +122,7 @@
             "Arn"
           ],
           "category": "function",
-          "resourceName": "teamNotifyWebhook"
+          "resourceName": "teamNotifySlack"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -322,7 +322,7 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "teamNotifyWebhook": {
+    "teamNotifySlack": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
@@ -576,19 +576,19 @@
         }
       ]
     },
-    "AMPLIFY_function_teamNotifyWebhook_deploymentBucketName": {
+    "AMPLIFY_function_teamNotifySlack_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "teamNotifyWebhook"
+          "resourceName": "teamNotifySlack"
         }
       ]
     },
-    "AMPLIFY_function_teamNotifyWebhook_s3Key": {
+    "AMPLIFY_function_teamNotifySlack_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "teamNotifyWebhook"
+          "resourceName": "teamNotifySlack"
         }
       ]
     },

@@ -66,7 +66,7 @@ export const onCreateSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
-      webhookURL
+      slackToken
     }
   }
 `;
@@ -84,7 +84,7 @@ export const onUpdateSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
-      webhookURL
+      slackToken
     }
   }
 `;
@@ -102,7 +102,7 @@ export const onDeleteSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
-      webhookURL
+      slackToken
     }
   }
 `;

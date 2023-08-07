@@ -95,7 +95,7 @@ type Settings
   modifiedBy: String
   notificationService: String
   sourceEmail: String
-  webhookURL: String
+  slackToken: String
 }
 type data {
   name: String

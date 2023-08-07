@@ -260,7 +260,7 @@ export const getSettings = /* GraphQL */ `
       updatedAt
       notificationService
       sourceEmail
-      webhookURL
+      slackToken
     }
   }
 `;
@@ -283,7 +283,7 @@ export const listSettings = /* GraphQL */ `
         updatedAt
         notificationService
         sourceEmail
-        webhookURL
+        slackToken
       }
       nextToken
     }

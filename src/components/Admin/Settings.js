@@ -25,8 +25,7 @@ function Settings(props) {
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
   const [notificationService, setNotificationService] = useState(null);
-  const [webhookURL, setWebhookURL] = useState("");
-  const [webhookURLError, setWebhookURLError] = useState("");
+  const [slackToken, setSlackToken] = useState("");
   const [sourceEmail, setSourceEmail] = useState(null);
   const [sourceEmailError, setSourceEmailError] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -45,7 +44,6 @@ function Settings(props) {
   
     async function validate() {
       let error = false;
-      const urlRegex = /^(http|https):\/\/[^ "]+$/;
       const emailRegex = /\S+@\S+\.\S+/;
     
       if (!duration || isNaN(duration) || Number(duration) > 8000 ||  Number(duration) < 1) {
@@ -54,10 +52,6 @@ function Settings(props) {
       }
       if (!expiry || isNaN(expiry) || Number(expiry) > 8000 || Number(expiry) < 1) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
-        error = true;
-      }
-      if (notificationService === "Webhook" && !urlRegex.test(webhookURL)) {
-        setWebhookURLError(`Enter a valid URL`);
         error = true;
       }
       if (notificationService === "SES" && !emailRegex.test(sourceEmail)) {
@@ -80,7 +74,7 @@ function Settings(props) {
     setApproval(item.approval);
     setNotificationService(item.notificationService);
     setSourceEmail(item.sourceEmail);
-    setWebhookURL(item.webhookURL);
+    setSlackToken(item.slackToken);
     setVisible(false);
   }
   async function handleSubmit() {
@@ -95,7 +89,7 @@ function Settings(props) {
         approval,
         notificationService,
         sourceEmail,
-        webhookURL,
+        slackToken,
       };
       const action = item === null ? createSetting : updateSetting;
       action(data).then(() => {
@@ -124,7 +118,7 @@ function Settings(props) {
         setApproval(data.approval);
         setNotificationService(data.notificationService);
         setSourceEmail(data.sourceEmail);
-        setWebhookURL(data.webhookURL);
+        setSlackToken(data.slackToken);
       } else {
         setDuration("9");
         setExpiry("3");
@@ -133,7 +127,7 @@ function Settings(props) {
         setApproval(true);
         setNotificationService("None");
         setSourceEmail("");
-        setWebhookURL("");
+        setSlackToken("");
       }
     });
   }
@@ -221,10 +215,10 @@ function Settings(props) {
                 <> {sourceEmail !== null ? <div>{sourceEmail}</div> : <Spinner /> }</>
               </div>
               )}
-              {notificationService === "Webhook" && (
+              {notificationService === "Slack" && (
               <div>
-                <Box variant="awsui-key-label">Webhook URL</Box>
-                <> {webhookURL !== null ? <div>{webhookURL}</div> : <Spinner /> }</>
+                <Box variant="awsui-key-label">Slack OAuth Token</Box>
+                <> {slackToken !== null ? <div>{slackToken}</div> : <Spinner /> }</>
               </div>
               )}
             </SpaceBetween>
@@ -352,10 +346,10 @@ function Settings(props) {
                 <RadioGroup
                   onChange={({ detail }) => {
                     setNotificationService(detail.value)
-                    if (notificationService === "SES") { setWebhookURL("") }
-                    if (notificationService === "Webhook") { setSourceEmail("") }
+                    if (notificationService === "SES") { setSlackToken("") }
+                    if (notificationService === "Slack") { setSourceEmail("") }
                     if (notificationService === "SNS" | notificationService === "None") {
-                      setWebhookURL("")
+                      setSlackToken("")
                       setSourceEmail("")
                     }
                   }}
@@ -363,7 +357,7 @@ function Settings(props) {
                   items={[
                     { label: "Amazon SES", value: "SES" },
                     { label: "Amazon SNS", value: "SNS" },
-                    { label: "Webhook", value: "Webhook" },
+                    { label: "Slack", value: "Slack" },
                     { label: "None", value: "None" },
                   ]}
                 >
@@ -388,21 +382,19 @@ function Settings(props) {
                   </Input>
                 </FormField>
               )}
-              {notificationService === "Webhook" && (
+              {notificationService === "Slack" && (
                 <FormField
-                  label="Webhook URL"
+                  label="Slack OAuth Token"
                   stretch
-                  description="Webhook URL to send notifications to."
-                  errorText={webhookURLError}
+                  description="Slack OAuth token with permission to the Slack workspace."
                 >
                   <Input
-                    value={webhookURL}
+                    value={slackToken}
                     onChange={(event) => {
-                      setWebhookURLError()
-                      setWebhookURL(event.detail.value)
+                      setSlackToken(event.detail.value)
                     }}
                   >
-                    Webhook URL
+                    Slack token
                   </Input>
                 </FormField>
               )}
