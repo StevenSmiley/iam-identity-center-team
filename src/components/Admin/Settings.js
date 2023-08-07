@@ -428,7 +428,7 @@ function Settings(props) {
                   <FormField
                     label="Slack OAuth Token"
                     stretch
-                    description="Slack OAuth token with permission to the Slack workspace."
+                    description="Slack OAuth token associated with the installed app."
                   >
                     <Input
                       value={slackToken}
