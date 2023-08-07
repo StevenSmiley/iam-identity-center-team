@@ -421,7 +421,7 @@ function Settings(props) {
               )}
               {notificationService === "Slack" && (
                 <div>
-                  <Link href={slackAppInstallUrl} target="_blank" rel="noopener noreferrer">
+                  <Link external href={slackAppInstallUrl} rel="noopener noreferrer">
                     Install Slack App
                   </Link>
                   <FormField
