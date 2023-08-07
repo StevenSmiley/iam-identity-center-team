@@ -394,7 +394,7 @@ function Settings(props) {
                   items={[
                     { label: "Amazon SES", value: "SES" },
                     { label: "Amazon SNS", value: "SNS" },
-                    { label: <div>Slack <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link></div>, value: "Slack" },
+                    { label: <div>Slack - <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link></div>, value: "Slack" },
                     { label: "None", value: "None" },
                   ]}
                 >
