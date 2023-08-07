@@ -394,7 +394,7 @@ function Settings(props) {
                   items={[
                     { label: "Amazon SES", value: "SES" },
                     { label: "Amazon SNS", value: "SNS" },
-                    { label: "Slack", value: "Slack" },
+                    { label: <div>Slack <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link></div>, value: "Slack" },
                     { label: "None", value: "None" },
                   ]}
                 >
@@ -420,11 +420,6 @@ function Settings(props) {
                 </FormField>
               )}
               {notificationService === "Slack" && (
-                <div>
-                  <Link external href={slackAppInstallUrl} rel="noopener noreferrer">
-                    Install Slack App
-                  </Link>
-                  <br />
                   <FormField
                     label="Slack OAuth Token"
                     stretch
@@ -439,7 +434,6 @@ function Settings(props) {
                       Slack token
                     </Input>
                   </FormField>
-                </div>
               )}
             </SpaceBetween>
           </Form>
