@@ -80,7 +80,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 include_request_details=True,
-                message="Your AWS access session has started",
+                message="Your AWS access session has started.",
             )
         case "error":
             # Notify approvers and requester error
