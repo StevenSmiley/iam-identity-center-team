@@ -424,6 +424,7 @@ function Settings(props) {
                   <Link external href={slackAppInstallUrl} rel="noopener noreferrer">
                     Install Slack App
                   </Link>
+                  <br />
                   <FormField
                     label="Slack OAuth Token"
                     stretch

@@ -5,14 +5,34 @@
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import os
+import boto3
 from datetime import datetime
 from dateutil import tz
 
-slack_token = os.environ["SLACK_BOT_TOKEN"]
-slack_client = WebClient(token=slack_token)
+def get_settings():
+    response = settings_table.get_item(
+        Key={
+            'id': 'settings'
+        }
+    )
+    return response
+
+settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
+dynamodb = boto3.resource('dynamodb')
+settings_table = dynamodb.Table(settings_table_name)
+settings = get_settings()
+item_settings = settings.get("Item", {})
+try:
+    slack_token = item_settings.get("slackToken")
+    slack_client = WebClient(token=slack_token)
+except Exception as error:
+    print("Error retrieving Slack OAuth token, cannot continue: ".format(error))
+    exit
 
 
 def lambda_handler(event, context):
+    # TODO: loop through people as applicable
+
     # Get Slack user ids for each person, by their email address
     user_email = event["email"]
     
@@ -26,6 +46,7 @@ def lambda_handler(event, context):
     
     # Build formatted date, localized to approver's timezone
     utc_zone=tz.tzutc()
+    # TODO: populate this from the request data
     request_start_time = "2023-04-21T12:43:39.879Z"
     parsed_date = datetime.strptime(request_start_time, '%Y-%m-%dT%H:%M:%S.%fZ')
     parsed_date = parsed_date.replace(tzinfo=utc_zone)
@@ -33,26 +54,35 @@ def lambda_handler(event, context):
     formatted_date = localized_date.strftime('%B %d, %Y at %I:%M %p %Z')
 
     # Build message using Slack blocks
+    # TODO: populate these from the request data
+    status = "pending"
+    requester = "requester@domain.com"
+    account = "Testing (123456789012)"
+    role = "CICDAdministrator"
+    duration = "1 hours"
+    justification = "Need access to fix the CICD pipeline"
+    ticket = "JIRA111"
+    login_url = "http://aws.team"
     message_blocks = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "AWS Access Request from requester@domain.com is *pending*",
+                "text": "AWS Access Request from {0} is *{1}*".format(requester, status),
             },
         },
         {
             "type": "section",
             "fields": [
-                {"type": "mrkdwn", "text": "*Account:*\nTesting (123456789012)"},
-                {"type": "mrkdwn", "text": "*Start time:*\n2023-04-21T12:43:39.879Z"},
-                {"type": "mrkdwn", "text": "*Role:*\nCICDAdministrator"},
-                {"type": "mrkdwn", "text": "*Duration:*\n1 hours"},
+                {"type": "mrkdwn", "text": "*Account:*\n{}".format(account)},
+                {"type": "mrkdwn", "text": "*Start time:*\n{}".format(formatted_date)},
+                {"type": "mrkdwn", "text": "*Role:*\n{}".format(role)},
+                {"type": "mrkdwn", "text": "*Duration:*\n{}".format(duration)},
                 {
                     "type": "mrkdwn",
-                    "text": "*Justification:*\nNeed access to fix the CICD pipeline",
+                    "text": "*Justification:*\n{}".format(justification),
                 },
-                {"type": "mrkdwn", "text": "*Ticket Number:*\nJIRA111"},
+                {"type": "mrkdwn", "text": "*Ticket Number:*\n{}".format(ticket)},
             ],
         },
         {
@@ -67,7 +97,7 @@ def lambda_handler(event, context):
                     "type": "plain_text",
                     "text": "Open TEAM",
                 },
-                "url": "https://aws.team",
+                "url": login_url,
                 "action_id": "button-action",
             },
         },
@@ -86,3 +116,4 @@ def lambda_handler(event, context):
                 user_id, error
             )
         )
+
