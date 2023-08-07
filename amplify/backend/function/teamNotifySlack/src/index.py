@@ -8,16 +8,10 @@ import os
 import boto3
 from dateutil import parser, tz
 
-
-def get_settings():
-    response = settings_table.get_item(Key={"id": "settings"})
-    return response
-
-
-settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
 dynamodb = boto3.resource("dynamodb")
+settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
 settings_table = dynamodb.Table(settings_table_name)
-settings = get_settings()
+settings = settings_table.get_item(Key={"id": "settings"})
 item_settings = settings.get("Item", {})
 try:
     slack_token = item_settings.get("slackToken")

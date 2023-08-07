@@ -10,6 +10,10 @@
     },
     "s3Key": {
       "Type": "String"
+    },
+    "apiteamGraphQLAPIIdOutput": {
+      "Type": "String",
+      "Default": "apiteamGraphQLAPIIdOutput"
     }
   },
   "Conditions": {
@@ -64,6 +68,11 @@
             },
             "REGION": {
               "Ref": "AWS::Region"
+            },
+            "SETTINGS_TABLE_NAME": {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:SettingsTable:Name"
+              }
             }
           }
         },
@@ -155,6 +164,17 @@
                   }
                 ]
               }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Settings-*"
+                }
+              ]
             }
           ]
         }
