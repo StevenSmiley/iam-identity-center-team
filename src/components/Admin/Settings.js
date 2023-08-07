@@ -10,6 +10,7 @@ import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
 import Button from "@awsui/components-react/button";
+import Link from "@awsui/components-react/link";
 import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@awsui/components-react";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import { Divider } from "antd";
@@ -31,6 +32,42 @@ function Settings(props) {
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
+
+  const slackAppManifest = {
+    display_information: {
+      name: 'AWS TEAM Access Requests',
+      description: 'AWS Temporary Elevated Access Management',
+      background_color: '#252F3E',
+    },
+    features: {
+      bot_user: {
+        display_name: 'AWS TEAM',
+        always_online: false,
+      },
+    },
+    oauth_config: {
+      scopes: {
+        bot: [
+          'channels:read',
+          'chat:write',
+          'groups:read',
+          'im:write',
+          'usergroups:read',
+          'users:read',
+          'users.profile:read',
+          'users:read.email',
+        ],
+      },
+    },
+    settings: {
+      org_deploy_enabled: false,
+      socket_mode_enabled: false,
+      token_rotation_enabled: false,
+    },
+  };
+  const encodedSlackAppManifest = encodeURIComponent(JSON.stringify(slackAppManifest))
+  const baseSlackAppUrl = 'https://api.slack.com/apps?new_app=1&manifest_json=';
+  const slackAppInstallUrl = baseSlackAppUrl + encodedSlackAppManifest;
 
   useEffect(() => {
     views();
@@ -383,20 +420,25 @@ function Settings(props) {
                 </FormField>
               )}
               {notificationService === "Slack" && (
-                <FormField
-                  label="Slack OAuth Token"
-                  stretch
-                  description="Slack OAuth token with permission to the Slack workspace."
-                >
-                  <Input
-                    value={slackToken}
-                    onChange={(event) => {
-                      setSlackToken(event.detail.value)
-                    }}
+                <div>
+                  <Link href={slackAppInstallUrl} target="_blank" rel="noopener noreferrer">
+                    Install Slack App
+                  </Link>
+                  <FormField
+                    label="Slack OAuth Token"
+                    stretch
+                    description="Slack OAuth token with permission to the Slack workspace."
                   >
-                    Slack token
-                  </Input>
-                </FormField>
+                    <Input
+                      value={slackToken}
+                      onChange={(event) => {
+                        setSlackToken(event.detail.value)
+                      }}
+                    >
+                      Slack token
+                    </Input>
+                  </FormField>
+                </div>
               )}
             </SpaceBetween>
           </Form>
