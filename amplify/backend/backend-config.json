@@ -324,6 +324,16 @@
     },
     "teamNotifySlack": {
       "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput",
+            "GraphQLAPIEndpointOutput"
+          ],
+          "category": "api",
+          "resourceName": "team"
+        }
+      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     }
