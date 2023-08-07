@@ -109,7 +109,7 @@ def lambda_handler(event: dict, context):
             try:
                 recipient_slack_user = slack_client.users_lookupByEmail(email=recipient)
                 recipient_slack_id = recipient_slack_user["user"]["id"]
-                recipient_timezone = tz.gettz(name=["user"]["tz"])
+                recipient_timezone = tz.gettz(name=recipient_slack_user["user"]["tz"])
             except SlackApiError as error:
                 print(
                     "Error getting Slack user info for {0}: {1}".format(
