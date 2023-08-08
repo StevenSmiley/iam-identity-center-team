@@ -260,7 +260,7 @@ function Settings(props) {
               {notificationService === "Slack" && (
               <div>
                 <Box variant="awsui-key-label">Slack OAuth Token</Box>
-                <> {slackToken !== null ? <div>{slackToken}</div> : <Spinner /> }</>
+                <> {slackToken !== null ? <div>********</div> : <Spinner /> }</>
               </div>
               )}
             </SpaceBetween>
