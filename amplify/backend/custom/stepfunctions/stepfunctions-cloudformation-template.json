@@ -70,7 +70,7 @@
                   "BackoffRate": 2
                 }
               ],
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Next": "DynamoDB UpdateStartTime"
             },
             "DynamoDB UpdateStartTime": {
@@ -85,7 +85,7 @@
                 }
               },
               "Next": "Grant Error ?",
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Grant Error ?": {
               "Type": "Choice",
@@ -126,7 +126,7 @@
                 "TopicArn.$": "$.notification_topic_arn"
               },
               "End": true,
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester - Started - Notification Type": {
               "Type": "Choice",
@@ -159,7 +159,7 @@
                   "ResultPath": "$.error"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Error - SES": {
               "Type": "Task",
@@ -183,7 +183,7 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "End": true,
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester - Started - SES": {
               "Type": "Task",
@@ -206,7 +206,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Next": "Wait",
               "Catch": [
                 {
@@ -289,7 +289,7 @@
                 }
               ],
               "Next": "Notify Requester - Choice",
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester - Choice": {
               "Type": "Choice",
@@ -322,7 +322,7 @@
                   "ResultPath": "$.error"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester - SES": {
               "Type": "Task",
@@ -344,7 +344,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Next": "schedule",
               "Catch": [
                 {
@@ -479,7 +479,7 @@
                   "Next": "Success"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester Cancelled - Choice": {
               "Type": "Choice",
@@ -514,7 +514,7 @@
                   "Next": "Success"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Notify Requester Cancelled - SES": {
               "Type": "Task",
@@ -537,7 +537,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -569,7 +569,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -710,7 +710,7 @@
                   "ResultPath": "$.error"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Pass": {
               "Type": "Pass",
@@ -738,7 +738,7 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "Next": "Revoked || Ended ?",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -778,7 +778,7 @@
                 }
               ],
               "Next": "Revoke Error ?",
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Revoke Error ?": {
               "Type": "Choice",
@@ -815,7 +815,7 @@
                 "TopicArn.$": "$.notification_topic_arn"
               },
               "End": true,
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "DynamoDB Update EndTime": {
               "Type": "Task",
@@ -853,7 +853,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "End": true
             }
           }
@@ -926,7 +926,7 @@
                 "TopicArn.$": "$.notification_topic_arn"
               },
               "Next": "Wait",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -958,7 +958,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Next": "Wait",
               "Catch": [
                 {
@@ -976,7 +976,7 @@
                 "FunctionName.$": "$.fn_teamnotifyslack_arn"
               },
               "Next": "Wait",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -1063,7 +1063,7 @@
                   "Next": "Pass"
                 }
               ],
-              "ResultPath": null
+              "ResultPath": "$.lastTaskResult"
             },
             "Pass": {
               "Type": "Pass",
@@ -1090,7 +1090,7 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "ResultPath": null,
+              "ResultPath": "$.lastTaskResult",
               "End": true,
               "Catch": [
                 {
