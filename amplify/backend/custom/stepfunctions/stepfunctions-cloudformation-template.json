@@ -179,7 +179,7 @@
                     "Data.$": "States.Format('Error Notification - TEAM elevated access request for {} to AWS account {}({})',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source": "States.Array($.source_email)"
+                "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "End": true,
@@ -203,7 +203,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to Account {}({}) has started',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source": "States.Array($.source_email)"
+                "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": null,
