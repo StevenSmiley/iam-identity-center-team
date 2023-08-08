@@ -101,18 +101,7 @@
       "dependsOn": [
         {
           "attributes": [
-            "GraphQLAPIIdOutput",
-            "GraphQLAPIEndpointOutput"
-          ],
-          "category": "api",
-          "resourceName": "team"
-        },
-        {
-          "attributes": [
-            "Name",
-            "Arn",
-            "Region",
-            "LambdaExecutionRole"
+            "Arn"
           ],
           "category": "function",
           "resourceName": "teamStatus"
