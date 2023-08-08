@@ -154,7 +154,7 @@
             },
             "REQUESTS_TABLE_NAME": {
               "Fn::ImportValue": {
-                "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:RequestsTable:Name"
+                "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:requestsTable:Name"
               }
             },
             "API_TEAM_GRAPHQLAPIIDOUTPUT": {
