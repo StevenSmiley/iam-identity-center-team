@@ -27,6 +27,7 @@ function Settings(props) {
   const [approval, setApproval] = useState(null);
   const [notificationService, setNotificationService] = useState(null);
   const [slackToken, setSlackToken] = useState("");
+  const [slackTokenError, setSlackTokenError] = useState("");
   const [sourceEmail, setSourceEmail] = useState(null);
   const [sourceEmailError, setSourceEmailError] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -93,6 +94,10 @@ function Settings(props) {
       }
       if (notificationService === "SES" && !emailRegex.test(sourceEmail)) {
         setSourceEmailError(`Enter a valid email address`);
+        error = true;
+      }
+      if (notificationService === "Slack" && slackToken.length < 10) {
+        setSlackTokenError(`Enter a complete OAuth token`);
         error = true;
       }
       return error;
@@ -424,10 +429,12 @@ function Settings(props) {
                     label="Slack OAuth Token"
                     stretch
                     description="Slack OAuth token associated with the installed app."
+                    errorText={slackTokenError}
                   >
                     <Input
                       value={slackToken}
                       onChange={(event) => {
+                        setSlackTokenError()
                         setSlackToken(event.detail.value)
                       }}
                       type="password"
