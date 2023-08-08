@@ -96,9 +96,15 @@ function Settings(props) {
         setSourceEmailError(`Enter a valid email address`);
         error = true;
       }
-      if (notificationService === "Slack" && slackToken.length < 10) {
-        setSlackTokenError(`Enter a complete OAuth token`);
-        error = true;
+      if (notificationService === "Slack") {
+        if (!slackToken.startsWith("xoxb")) {
+          setSlackTokenError(`Enter a valid Slack bot token`);
+          error = true;
+        }
+        else if (slackToken.length < 10) {
+          setSlackTokenError(`Enter a complete OAuth token`);
+          error = true;
+        }
       }
       return error;
     }
