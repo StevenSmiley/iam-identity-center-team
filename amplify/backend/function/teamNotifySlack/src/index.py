@@ -31,7 +31,7 @@ def lambda_handler(event: dict, context):
     duration_hours = event["time"]
     justification = event.get("justification", "No justification provided")
     ticket = event.get("ticketNo", "No ticket provided")
-    login_url = event["login_url"]
+    login_url = event["sso_login_url"]
 
     match request_status:
         case "pending":
