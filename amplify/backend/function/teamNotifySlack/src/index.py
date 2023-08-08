@@ -60,6 +60,19 @@ def lambda_handler(event: dict, context):
                 justification=justification,
                 ticket=ticket,
             )
+        case "approved":
+            # Notify requester request approved
+            send_slack_notifications(
+                recipients=[requester],
+                message=f"Your AWS access request was approved by {event['approver']}.",
+                login_url=login_url,
+                role=role,
+                account=account,
+                request_start_time=request_start_time,
+                duration_hours=duration_hours,
+                justification=justification,
+                ticket=ticket,
+            )
         case "rejected":
             # Notify requester request rejected
             send_slack_notifications(
