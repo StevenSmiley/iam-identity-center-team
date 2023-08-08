@@ -430,6 +430,7 @@ function Settings(props) {
                       onChange={(event) => {
                         setSlackToken(event.detail.value)
                       }}
+                      type="password"
                     >
                       Slack token
                     </Input>
