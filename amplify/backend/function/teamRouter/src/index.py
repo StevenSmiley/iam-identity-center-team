@@ -514,7 +514,7 @@ def handler(event, context):
             if approval_required:
                 approval_required = eligible["approval"]
                 request["approvalRequired"] = eligible["approval"]
-            invoke_workflow(request, approval_required, notification_config)
+            invoke_workflow(request, approval_required, notification_config, team_config)
     else:
         print("Request not updated")
         
