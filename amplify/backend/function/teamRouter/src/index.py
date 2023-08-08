@@ -20,7 +20,6 @@ dynamodb = boto3.resource('dynamodb')
 approver_table = dynamodb.Table(approver_table_name)
 policy_table = dynamodb.Table(policy_table_name)
 settings_table = dynamodb.Table(settings_table_name)
-requests_table = dynamodb.Table(requests_table_name)
 
 grant = os.getenv("GRANT_SM")
 revoke = os.getenv("REVOKE_SM")
@@ -33,7 +32,7 @@ fn_teamstatus_arn = os.getenv("FN_TEAMSTATUS_ARN")
 fn_teamnotifyslack_arn = os.getenv("FN_TEAMNOTIFYSLACK_ARN")
 team_config = {
     "sso_login_url": sso_login_url,
-    "requests_table": requests_table,
+    "requests_table": requests_table_name,
     "revoke_sm": revoke,
     "grant_sm": grant,
     "fn_teamstatus_arn": fn_teamstatus_arn,
