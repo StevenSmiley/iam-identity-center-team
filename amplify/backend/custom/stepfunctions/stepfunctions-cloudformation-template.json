@@ -230,7 +230,7 @@
             "Update Request Status - in progress": {
               "Next": "DynamoDB UpdateStartTime",
               "Parameters": {
-                "FunctionName.$": "$.fn_teamstatus.arn",
+                "FunctionName.$": "$.fn_teamstatus_arn",
                 "Payload.$": "$"
               },
               "Resource": "arn:aws:states:::lambda:invoke",
@@ -464,7 +464,7 @@
             "Update Request Status - scheduled": {
               "Next": "Notify Requester Scheduled - Notification Type",
               "Parameters": {
-                "FunctionName.$": "$.fn_teamstatus.arn",
+                "FunctionName.$": "$.fn_teamstatus_arn",
                 "Payload.$": "$"
               },
               "Resource": "arn:aws:states:::lambda:invoke",
@@ -1062,7 +1062,7 @@
             "Update Request Status": {
               "Next": "Revoke Error?",
               "Parameters": {
-                "FunctionName.$": "$.fn_teamstatus.arn",
+                "FunctionName.$": "$.fn_teamstatus_arn",
                 "Payload.$": "$"
               },
               "Resource": "arn:aws:states:::lambda:invoke",
@@ -1374,7 +1374,7 @@
             "Update Request Status": {
               "Next": "Notify Requester Expired - Notification Type",
               "Parameters": {
-                "FunctionName.$": "$.fn_teamstatus.arn",
+                "FunctionName.$": "$.fn_teamstatus_arn",
                 "Payload.$": "$"
               },
               "Resource": "arn:aws:states:::lambda:invoke",
@@ -1579,6 +1579,13 @@
                 },
                 {
                   "Effect": "Allow",
+                  "Action": ["lambda:InvokeFunction"],
+                  "Resource": {
+                    "Ref": "functionteamNotifySlackArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
                   "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
                   "Resource": {
                     "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
@@ -1663,6 +1670,13 @@
                   "Action": "sns:Publish",
                   "Resource": {
                     "Fn::ImportValue": "NotificationTopicArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["lambda:InvokeFunction"],
+                  "Resource": {
+                    "Ref": "functionteamNotifySlackArn"
                   }
                 },
                 {
@@ -1758,6 +1772,13 @@
                 },
                 {
                   "Effect": "Allow",
+                  "Action": ["lambda:InvokeFunction"],
+                  "Resource": {
+                    "Ref": "functionteamNotifySlackArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
                   "Action": ["sso:DeleteAccountAssignment"],
                   "Resource": "*"
                 },
@@ -1838,6 +1859,13 @@
                   "Action": "sns:Publish",
                   "Resource": {
                     "Fn::ImportValue": "NotificationTopicArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["lambda:InvokeFunction"],
+                  "Resource": {
+                    "Ref": "functionteamNotifySlackArn"
                   }
                 },
                 {
