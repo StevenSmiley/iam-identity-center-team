@@ -16,6 +16,9 @@
     "s3Key": {
       "Type": "String"
     },
+    "SSOLoginUrl": {
+      "Type": "String"
+    },
     "customstepfunctionsGrantSMOutput": {
       "Type": "String",
       "Default": "customstepfunctionsGrantSMOutput"
@@ -47,6 +50,14 @@
     "authteam06dbb7fcUserPoolId": {
       "Type": "String",
       "Default": "authteam06dbb7fcUserPoolId"
+    },
+    "functionteamStatusArn": {
+      "Type": "String",
+      "Default": "functionteamStatusArn"
+    },
+    "functionteamNotifySlackArn": {
+      "Type": "String",
+      "Default": "functionteamNotifySlackArn"
     }
   },
   "Conditions": {
@@ -133,9 +144,17 @@
             "APPROVAL_SM": {
               "Ref": "customstepfunctionsApprovalSMOutput"
             },
+            "SSO_LOGIN_URL": {
+              "Ref": "SSOLoginUrl"
+            },
             "APPROVER_TABLE_NAME": {
               "Fn::ImportValue": {
                 "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:ApproversTable:Name"
+              }
+            },
+            "REQUESTS_TABLE_NAME": {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:RequestsTable:Name"
               }
             },
             "API_TEAM_GRAPHQLAPIIDOUTPUT": {
@@ -143,6 +162,12 @@
             },
             "AUTH_TEAM06DBB7FC_USERPOOLID": {
               "Ref": "authteam06dbb7fcUserPoolId"
+            },
+            "FN_TEAMSTATUS_ARN": {
+              "Ref": "functionteamStatusArn"
+            },
+            "FN_TEAMNOTIFYSLACK_ARN": {
+              "Ref": "functionteamNotifySlackArn"
             }
           }
         },

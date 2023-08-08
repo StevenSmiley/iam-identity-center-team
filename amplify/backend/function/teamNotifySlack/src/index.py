@@ -8,8 +8,6 @@ import os
 import boto3
 from dateutil import parser, tz
 
-# TODO: Get the login url from somewhere
-login_url = "http://aws.team"
 dynamodb = boto3.resource("dynamodb")
 settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
 settings_table = dynamodb.Table(settings_table_name)
@@ -33,6 +31,7 @@ def lambda_handler(event: dict, context):
     duration_hours = event["time"]
     justification = event.get("justification", "No justification provided")
     ticket = event.get("ticketNo", "No ticket provided")
+    login_url = event["login_url"]
 
     match request_status:
         case "pending":
@@ -40,6 +39,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=approvers,
                 message=f"<mailto:{requester}|{requester}> requests access to AWS, please approve or reject this request in TEAM.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -52,6 +52,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 message="Your AWS access request has expired.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -64,6 +65,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 message="Your AWS access request was rejected.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -76,6 +78,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[approvers],
                 message=f"{requester} cancelled this AWS access request.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -88,6 +91,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 message="AWS access is scheduled.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -100,6 +104,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 message="Your AWS access session has started.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -112,6 +117,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=approvers + [requester],
                 message="Error with AWS access request.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -124,6 +130,7 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[requester],
                 message="Your AWS access session has ended.",
+                login_url=login_url,
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
@@ -138,6 +145,7 @@ def lambda_handler(event: dict, context):
 def send_slack_notifications(
     recipients: list,
     message,
+    login_url,
     request_start_time,
     role,
     account,

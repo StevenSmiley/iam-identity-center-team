@@ -172,6 +172,20 @@
           ],
           "category": "custom",
           "resourceName": "stepfunctions"
+        },
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "teamStatus"
+        },
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "teamNotifySlack"
         }
       ],
       "providerPlugin": "awscloudformation",
