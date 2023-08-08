@@ -39,7 +39,7 @@ def lambda_handler(event: dict, context):
             # Notify approvers pending request
             send_slack_notifications(
                 recipients=approvers,
-                message=f"{requester} requests access to AWS, please approve or reject this request in TEAM.",
+                message=f"<mailto:{requester}|{requester}> requests access to AWS, please approve or reject this request in TEAM.",
                 role=role,
                 account=account,
                 request_start_time=request_start_time,
