@@ -17,7 +17,7 @@ try:
     slack_token = item_settings.get("slackToken")
     slack_client = WebClient(token=slack_token)
 except Exception as error:
-    print("Error retrieving Slack OAuth token, cannot continue: ".format(error))
+    print(f"Error retrieving Slack OAuth token, cannot continue: {error}")
     exit
 
 
@@ -25,7 +25,7 @@ def lambda_handler(event: dict, context):
     request_status = event["status"]
     requester = event["email"]
     approvers = event.get("approvers", "")
-    account = "{0} ({})".format(event["accountName"], event["accountId"])
+    account = f'{event["accountName"]} ({event["accountId"]})'
     role = event["role"]
     duration_hours = event["duration"]
     justification = event.get("justification", "No justification provided")
@@ -105,11 +105,7 @@ def lambda_handler(event: dict, context):
                 recipient_slack_id = recipient_slack_user["user"]["id"]
                 recipient_timezone = tz.gettz(name=recipient_slack_user["user"]["tz"])
             except SlackApiError as error:
-                print(
-                    "Error getting Slack user info for {0}: {1}".format(
-                        recipient, error
-                    )
-                )
+                print(f"Error getting Slack user info for {recipient}: {error}")
                 continue
 
             # Format date, localized to recipient's timezone
@@ -143,24 +139,24 @@ def lambda_handler(event: dict, context):
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Account:*\n{}".format(account),
+                                "text": f"*Account:*\n{account}",
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Start time:*\n{}".format(formatted_date),
+                                "text": f"*Start time:*\n{formatted_date}",
                             },
-                            {"type": "mrkdwn", "text": "*Role:*\n{}".format(role)},
+                            {"type": "mrkdwn", "text": f"*Role:*\n{role}"},
                             {
                                 "type": "mrkdwn",
-                                "text": "*Duration:*\n{} hours".format(duration_hours),
-                            },
-                            {
-                                "type": "mrkdwn",
-                                "text": "*Justification:*\n{}".format(justification),
+                                "text": f"*Duration:*\n{duration_hours} hours",
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Ticket Number:*\n{}".format(ticket),
+                                "text": f"*Justification:*\n{justification}",
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": f"*Ticket Number:*\n{ticket}",
                             },
                         ],
                     }
@@ -175,7 +171,5 @@ def lambda_handler(event: dict, context):
                 )
             except SlackApiError as error:
                 print(
-                    "Error posting chat message to channel/user id {0}: {1}".format(
-                        recipient_slack_id, error
-                    )
+                    f"Error posting chat message to channel/user id {recipient_slack_id}: {error}"
                 )
