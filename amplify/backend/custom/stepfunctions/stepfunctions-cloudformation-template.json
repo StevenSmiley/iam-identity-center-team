@@ -29,11 +29,50 @@
           ]
         },
         "Definition": {
-          "Comment": "Temporary Elevated Access Management Grant state machine",
+          "Comment": "Temporary Elevated Access Management - Grant state machine",
           "StartAt": "Grant Permission",
           "States": {
+            "DynamoDB UpdateStartTime": {
+              "Next": "Grant Error?",
+              "Parameters": {
+                "ExpressionAttributeValues": {
+                  ":time": {
+                    "S.$": "$$.State.EnteredTime"
+                  }
+                },
+                "Key": {
+                  "id": {
+                    "S.$": "$.id"
+                  }
+                },
+                "TableName.$": "$.requests_table",
+                "UpdateExpression": "SET startTime = :time"
+              },
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Grant Error?": {
+              "Choices": [
+                {
+                  "IsPresent": true,
+                  "Next": "Notify Error - Notification Type",
+                  "Variable": "$.statusError"
+                }
+              ],
+              "Default": "Notify Requester Started - Notification Type",
+              "Type": "Choice"
+            },
             "Grant Permission": {
-              "Type": "Task",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Update Request Status - in progress",
+                  "ResultPath": "$.statusError"
+                }
+              ],
               "Next": "Update Request Status - in progress",
               "Parameters": {
                 "InstanceArn.$": "$.instanceARN",
@@ -45,128 +84,35 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ssoadmin:createAccountAssignment",
               "ResultPath": "$.grant",
-              "Catch": [
-                {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "Update Request Status - in progress",
-                  "ResultPath": "$.statusError"
-                }
-              ]
-            },
-            "Update Request Status - in progress": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": { "Payload.$": "$", "FunctionName.$": "$.fn_teamstatus.arn" },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "ResultPath": "$.lastTaskResult",
-              "Next": "DynamoDB UpdateStartTime"
-            },
-            "DynamoDB UpdateStartTime": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:updateItem",
-              "Parameters": {
-                "TableName.$": "$.requests_table",
-                "Key": { "id": { "S.$": "$.id" } },
-                "UpdateExpression": "SET startTime = :time",
-                "ExpressionAttributeValues": {
-                  ":time": { "S.$": "$$.State.EnteredTime" }
-                }
-              },
-              "Next": "Grant Error ?",
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Grant Error ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.statusError",
-                  "IsPresent": true,
-                  "Next": "Notify Error - Notification Type"
-                }
-              ],
-              "Default": "Notify Requester - Started - Notification Type"
+              "Type": "Task"
             },
             "Notify Error - Notification Type": {
-              "Type": "Choice",
               "Choices": [
                 {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Error - SNS",
                   "StringEquals": "SNS",
-                  "Next": "Notify Error - SNS"
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Error - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
                 },
                 {
                   "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Error - SES"
+                  "StringEquals": "Slack",
+                  "Next": "Notify Error - Slack"
                 }
               ],
-              "Default": "Pass"
-            },
-            "Pass": {
-              "Type": "Pass",
-              "End": true
-            },
-            "Notify Error - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "End": true,
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Notify Requester - Started - Notification Type": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SNS",
-                  "Next": "Notify Requester - Started - SNS"
-                },
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester - Started - SES"
-                }
-              ],
-              "Default": "Wait"
-            },
-            "Notify Requester - Started - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "Wait",
-              "Catch": [
-                {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "Wait",
-                  "ResultPath": "$.error"
-                }
-              ],
-              "ResultPath": "$.lastTaskResult"
+              "Default": "Pass",
+              "Type": "Choice"
             },
             "Notify Error - SES": {
-              "Type": "Task",
+              "End": true,
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "States.Array($.source_email)",
-                  "CcAddresses.$": "States.Array($.email)"
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "States.Array($.source_email)"
                 },
                 "Message": {
                   "Body": {
@@ -182,15 +128,55 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "End": true,
-              "ResultPath": "$.lastTaskResult"
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
             },
-            "Notify Requester - Started - SES": {
-              "Type": "Task",
+            "Notify Error - SNS": {
+              "End": true,
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Started - Notification Type": {
+              "Choices": [
+                {
+                  "Next": "Notify Started - SNS",
+                  "StringEquals": "SNS",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Started - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Variable": "$.notification_service",
+                  "StringEquals": "Slack",
+                  "Next": "Notify Started - Slack"
+                }
+              ],
+              "Default": "Wait",
+              "Type": "Choice"
+            },
+            "Notify Started - SES": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Wait",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Wait",
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "States.Array($.email)",
-                  "CcAddresses.$": "$.approvers"
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
                 },
                 "Message": {
                   "Body": {
@@ -207,27 +193,121 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Next": "Wait",
+              "Type": "Task"
+            },
+            "Notify Started - SNS": {
               "Catch": [
                 {
-                  "ErrorEquals": ["States.ALL"],
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Wait",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Wait",
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Pass": {
+              "End": true,
+              "Type": "Pass"
+            },
+            "Revoke Permission": {
+              "End": true,
+              "Parameters": {
+                "Input.$": "$",
+                "StateMachineArn.$": "$.revoke_sm"
+              },
+              "Resource": "arn:aws:states:::states:startExecution",
+              "Type": "Task"
+            },
+            "Update Request Status - in progress": {
+              "Next": "DynamoDB UpdateStartTime",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamstatus.arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
+            "Wait": {
+              "Next": "Revoke Permission",
+              "SecondsPath": "$.duration",
+              "Type": "Wait"
+            },
+            "Notify Started - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "Wait",
+              "ResultPath": "$.lastTaskResult",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
                   "Next": "Wait",
                   "ResultPath": "$.error"
                 }
               ]
             },
-            "Wait": {
-              "Type": "Wait",
-              "Next": "Revoke Permission",
-              "SecondsPath": "$.duration"
-            },
-            "Revoke Permission": {
+            "Notify Error - Slack": {
               "Type": "Task",
-              "Resource": "arn:aws:states:::states:startExecution",
+              "Resource": "arn:aws:states:::lambda:invoke",
               "Parameters": {
-                "StateMachineArn.$": "$.revoke_sm",
-                "Input.$": "$"
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
               },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "ResultPath": "$.lastTaskResult",
               "End": true
             }
           }
@@ -268,64 +348,64 @@
           ]
         },
         "Definition": {
-          "Comment": "Temporary Elevated Access Management Schedule state machine",
+          "Comment": "Temporary Elevated Access Management - Schedule state machine",
           "StartAt": "Update Request Status - scheduled",
           "States": {
-            "Update Request Status - scheduled": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": { "Payload.$": "$", "FunctionName.$": "$.fn_teamstatus.arn" },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Notify Requester - Choice",
-              "ResultPath": "$.lastTaskResult"
+            "DynamoDB GetStatus": {
+              "Next": "Scheduled?",
+              "Parameters": {
+                "Key": {
+                  "id": {
+                    "S.$": "$.id"
+                  }
+                },
+                "TableName.$": "$.requests_table"
+              },
+              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "ResultPath": "$.result",
+              "Type": "Task"
             },
-            "Notify Requester - Choice": {
-              "Type": "Choice",
+            "Grant Permission": {
+              "End": true,
+              "Parameters": {
+                "Input.$": "$",
+                "StateMachineArn.$": "$.grant_sm"
+              },
+              "Resource": "arn:aws:states:::states:startExecution",
+              "Type": "Task"
+            },
+            "Notify Requester Scheduled - Notification Type": {
               "Choices": [
                 {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Requester Scheduled - SNS",
                   "StringEquals": "SNS",
-                  "Next": "Notify Requester - SNS"
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Requester Scheduled - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
                 },
                 {
                   "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester - SES"
+                  "StringEquals": "Slack",
+                  "Next": "Notify Requester Scheduled - Slack"
                 }
               ],
-              "Default": "schedule"
+              "Default": "Schedule",
+              "Type": "Choice"
             },
-            "Notify Requester - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "schedule",
+            "Notify Requester Scheduled - SES": {
               "Catch": [
                 {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "schedule",
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Schedule",
                   "ResultPath": "$.error"
                 }
               ],
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Notify Requester - SES": {
-              "Type": "Task",
+              "Next": "Schedule",
               "Parameters": {
                 "Destination": {
                   "ToAddresses.$": "States.Array($.email)"
@@ -345,50 +425,101 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Next": "schedule",
+              "Type": "Task"
+            },
+            "Notify Requester Scheduled - SNS": {
               "Catch": [
                 {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "schedule",
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Schedule",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Schedule",
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Pass": {
+              "End": true,
+              "Type": "Pass"
+            },
+            "Scheduled?": {
+              "Choices": [
+                {
+                  "Next": "Grant Permission",
+                  "StringEquals": "scheduled",
+                  "Variable": "$.result.Item.status.S"
+                }
+              ],
+              "Default": "Pass",
+              "Type": "Choice"
+            },
+            "Update Request Status - scheduled": {
+              "Next": "Notify Requester Scheduled - Notification Type",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamstatus.arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
+            "Schedule": {
+              "Next": "DynamoDB GetStatus",
+              "TimestampPath": "$.startTime",
+              "Type": "Wait"
+            },
+            "Notify Requester Scheduled - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "Schedule",
+              "ResultPath": "$.lastTaskResult",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Schedule",
                   "ResultPath": "$.error"
                 }
               ]
-            },
-            "schedule": {
-              "Type": "Wait",
-              "Next": "DynamoDB GetStatus",
-              "TimestampPath": "$.startTime"
-            },
-            "DynamoDB GetStatus": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:getItem",
-              "Parameters": {
-                "TableName.$": "$.requests_table",
-                "Key": { "id": { "S.$": "$.id" } }
-              },
-              "Next": "Scheduled ?",
-              "ResultPath": "$.result"
-            },
-            "Scheduled ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.result.Item.status.S",
-                  "StringEquals": "scheduled",
-                  "Next": "Grant Permission"
-                }
-              ],
-              "Default": "Pass"
-            },
-            "Pass": {
-              "Type": "Pass",
-              "End": true
-            },
-            "Grant Permission": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::states:startExecution",
-              "Parameters": { "StateMachineArn.$": "$.grant_sm", "Input.$": "$" },
-              "End": true
             }
           }
         },
@@ -428,100 +559,45 @@
           ]
         },
         "Definition": {
-          "Comment": "Temporary Elevated Access Management Reject state machine",
-          "StartAt": "Status ?",
+          "Comment": "Temporary Elevated Access Management - Reject state machine",
+          "StartAt": "Status?",
           "States": {
-            "Status ?": {
-              "Type": "Choice",
+            "Notify Requester Cancelled - Notification Type": {
               "Choices": [
                 {
-                  "Variable": "$.status",
-                  "StringEquals": "cancelled",
-                  "Next": "Notify Requester Cancelled - Choice"
-                },
-                {
-                  "Variable": "$.status",
-                  "StringEquals": "rejected",
-                  "Next": "Notify Requester Rejected - Choice"
-                }
-              ]
-            },
-            "Notify Requester Rejected - Choice": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Requester Cancelled - SNS",
                   "StringEquals": "SNS",
-                  "Next": "Notify Requester Rejected - SNS"
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Requester Cancelled - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
                 },
                 {
                   "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester Rejected - SES"
+                  "StringEquals": "Slack",
+                  "Next": "Notify Requester Cancelled - Slack"
                 }
               ],
-              "Default": "Success"
-            },
-            "Notify Requester Rejected - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "Success",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "ResultPath": "$.error",
-                  "Next": "Success"
-                }
-              ],
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Notify Requester Cancelled - Choice": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SNS",
-                  "Next": "Notify Requester Cancelled - SNS"
-                },
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester Cancelled - SES"
-                }
-              ],
-              "Default": "Success"
-            },
-            "Notify Requester Cancelled - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "Success",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "ResultPath": "$.error",
-                  "Next": "Success"
-                }
-              ],
-              "ResultPath": "$.lastTaskResult"
+              "Default": "Success",
+              "Type": "Choice"
             },
             "Notify Requester Cancelled - SES": {
-              "Type": "Task",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Success",
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "$.approvers",
-                  "CcAddresses.$": "States.Array($.email)"
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "$.approvers"
                 },
                 "Message": {
                   "Body": {
@@ -538,6 +614,9 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Cancelled - SNS": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -547,10 +626,47 @@
                   "ResultPath": "$.error"
                 }
               ],
-              "Next": "Success"
+              "Next": "Success",
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Rejected - Notification Type": {
+              "Choices": [
+                {
+                  "Next": "Notify Requester Rejected - SNS",
+                  "StringEquals": "SNS",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Requester Rejected - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Variable": "$.notification_service",
+                  "StringEquals": "Slack",
+                  "Next": "Notify Requester Rejected - Slack"
+                }
+              ],
+              "Default": "Success",
+              "Type": "Choice"
             },
             "Notify Requester Rejected - SES": {
-              "Type": "Task",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Success",
               "Parameters": {
                 "Destination": {
                   "ToAddresses.$": "States.Array($.email)"
@@ -570,6 +686,98 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Rejected - SNS": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Success",
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Status?": {
+              "Choices": [
+                {
+                  "Next": "Notify Requester Cancelled - Notification Type",
+                  "StringEquals": "cancelled",
+                  "Variable": "$.status"
+                },
+                {
+                  "Next": "Notify Requester Rejected - Notification Type",
+                  "StringEquals": "rejected",
+                  "Variable": "$.status"
+                }
+              ],
+              "Type": "Choice"
+            },
+            "Success": {
+              "Type": "Succeed"
+            },
+            "Notify Requester Cancelled - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "Success",
+              "ResultPath": "$.lastTaskResult",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ]
+            },
+            "Notify Requester Rejected - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "ResultPath": "$.lastTaskResult",
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -580,9 +788,6 @@
                 }
               ],
               "Next": "Success"
-            },
-            "Success": {
-              "Type": "Succeed"
             }
           }
         },
@@ -622,222 +827,69 @@
           ]
         },
         "Definition": {
-          "Comment": "Temporary Elevated Access Management Revoke state machine",
+          "Comment": "Temporary Elevated Access Management - Revoke state machine",
           "StartAt": "DynamoDB GetStatus",
           "States": {
             "DynamoDB GetStatus": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "Next": "Revoked?",
               "Parameters": {
-                "TableName.$": "$.requests_table",
-                "Key": { "id": { "S.$": "$.id" } }
-              },
-              "Next": "Revoked ?",
-              "ResultPath": "$.data"
-            },
-            "Revoked ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "And": [
-                    {
-                      "Variable": "$.data.Item.status.S ",
-                      "StringEquals": "revoked"
-                    },
-                    {
-                      "Variable": "$.result",
-                      "IsPresent": true
-                    }
-                  ],
-                  "Next": "Pass"
-                }
-              ],
-              "Default": "Revoke Permission"
-            },
-            "Revoke Permission": {
-              "Type": "Task",
-              "Parameters": {
-                "InstanceArn.$": "$.instanceARN",
-                "PermissionSetArn.$": "$.roleId",
-                "PrincipalId.$": "$.userId",
-                "PrincipalType": "USER",
-                "TargetId.$": "$.accountId",
-                "TargetType": "AWS_ACCOUNT"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:ssoadmin:deleteAccountAssignment",
-              "ResultPath": "$.revoke",
-              "Next": "Notify Requester Session Ended - Choice",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "ResultPath": "$.statusError",
-                  "Next": "Update Request Status"
-                }
-              ]
-            },
-            "Notify Requester Session Ended - Choice": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SNS",
-                  "Next": "Notify Requester Session Ended - SNS"
-                },
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester Session Ended - SES"
-                }
-              ],
-              "Default": "Revoked || Ended ?"
-            },
-            "Notify Requester Session Ended - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "Revoked || Ended ?",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "Next": "Revoked || Ended ?",
-                  "ResultPath": "$.error"
-                }
-              ],
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Pass": {
-              "Type": "Pass",
-              "End": true
-            },
-            "Notify Requester Session Ended - SES": {
-              "Type": "Task",
-              "Parameters": {
-                "Destination": {
-                  "ToAddresses.$": "States.Array($.email)",
-                  "CcAddresses.$": "$.approvers"
-                },
-                "Message": {
-                  "Body": {
-                    "Html": {
-                      "Charset": "UTF-8",
-                      "Data.$": "States.Format('<html><body>TEAM elevated access for <b>{}</b> to AWS account - <b>{}({})</b> has <b>ended</b><p> Elevated access has been removed </p><p>Login to <a href=\"{}\">TEAM Application</a> to view session activity logs</p></body></html>',$.email,$.accountName,$.accountId,$.sso_login_url)"
-                    }
-                  },
-                  "Subject": {
-                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) has ended',$.email,$.accountName,$.accountId)"
+                "Key": {
+                  "id": {
+                    "S.$": "$.id"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "TableName.$": "$.requests_table"
               },
-              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
-              "Next": "Revoked || Ended ?",
-              "ResultPath": "$.lastTaskResult",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "Next": "Revoked || Ended ?",
-                  "ResultPath": "$.error"
-                }
-              ]
-            },
-            "Revoked || Ended ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.data.Item.status.S",
-                  "StringEquals": "revoked",
-                  "Next": "DynamoDB Update EndTime"
-                }
-              ],
-              "Default": "Update Request Status"
-            },
-            "Update Request Status": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": { "Payload.$": "$", "FunctionName.$": "$.fn_teamstatus.arn" },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Revoke Error ?",
-              "ResultPath": "$.lastTaskResult"
-            },
-            "Revoke Error ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.statusError",
-                  "IsPresent": true,
-                  "Next": "Notify Error - Choice"
-                }
-              ],
-              "Default": "DynamoDB Update EndTime"
-            },
-            "Notify Error - Choice": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SNS",
-                  "Next": "Notify Error - SNS"
-                },
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Error - SES"
-                }
-              ],
-              "Default": "Pass"
-            },
-            "Notify Error - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "End": true,
-              "ResultPath": "$.lastTaskResult"
+              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "ResultPath": "$.data",
+              "Type": "Task"
             },
             "DynamoDB Update EndTime": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "End": true,
               "Parameters": {
-                "TableName.$": "$.requests_table",
-                "Key": { "id": { "S.$": "$.id" } },
-                "UpdateExpression": "SET endTime = :time",
                 "ExpressionAttributeValues": {
                   ":time": {
                     "S.$": "$$.State.EnteredTime"
                   }
-                }
+                },
+                "Key": {
+                  "id": {
+                    "S.$": "$.id"
+                  }
+                },
+                "TableName.$": "$.requests_table",
+                "UpdateExpression": "SET endTime = :time"
               },
-              "End": true
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Type": "Task"
+            },
+            "Notify Error - Notification Type": {
+              "Choices": [
+                {
+                  "Next": "Notify Error - SNS",
+                  "StringEquals": "SNS",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Error - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Variable": "$.notification_service",
+                  "StringEquals": "Slack",
+                  "Next": "Notify Error - Slack"
+                }
+              ],
+              "Default": "Pass",
+              "Type": "Choice"
             },
             "Notify Error - SES": {
-              "Type": "Task",
+              "End": true,
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "States.Array($.source_email)",
-                  "CcAddresses.$": "$.approvers"
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.source_email)"
                 },
                 "Message": {
                   "Body": {
@@ -853,6 +905,235 @@
                 "Source.$": "States.Array($.source_email)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Error - SNS": {
+              "End": true,
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Session Ended - Notification Type": {
+              "Choices": [
+                {
+                  "Next": "Notify Requester Session Ended - SNS",
+                  "StringEquals": "SNS",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Requester Session Ended - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Variable": "$.notification_service",
+                  "StringEquals": "Slack",
+                  "Next": "Notify Requester Session Ended - Slack"
+                }
+              ],
+              "Default": "Revoked || Ended ?",
+              "Type": "Choice"
+            },
+            "Notify Requester Session Ended - SES": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Revoked || Ended ?",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Revoked || Ended ?",
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>TEAM elevated access for <b>{}</b> to AWS account - <b>{}({})</b> has <b>ended</b><p> Elevated access has been removed </p><p>Login to <a href=\"{}\">TEAM Application</a> to view session activity logs</p></body></html>',$.email,$.accountName,$.accountId,$.sso_login_url)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) has ended',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "States.Array($.source_email)"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Session Ended - SNS": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Revoked || Ended ?",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Revoked || Ended ?",
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Pass": {
+              "End": true,
+              "Type": "Pass"
+            },
+            "Revoke Error?": {
+              "Choices": [
+                {
+                  "IsPresent": true,
+                  "Next": "Notify Error - Notification Type",
+                  "Variable": "$.statusError"
+                }
+              ],
+              "Default": "DynamoDB Update EndTime",
+              "Type": "Choice"
+            },
+            "Revoke Permission": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Update Request Status",
+                  "ResultPath": "$.statusError"
+                }
+              ],
+              "Next": "Notify Requester Session Ended - Notification Type",
+              "Parameters": {
+                "InstanceArn.$": "$.instanceARN",
+                "PermissionSetArn.$": "$.roleId",
+                "PrincipalId.$": "$.userId",
+                "PrincipalType": "USER",
+                "TargetId.$": "$.accountId",
+                "TargetType": "AWS_ACCOUNT"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ssoadmin:deleteAccountAssignment",
+              "ResultPath": "$.revoke",
+              "Type": "Task"
+            },
+            "Revoked?": {
+              "Choices": [
+                {
+                  "And": [
+                    {
+                      "StringEquals": "revoked",
+                      "Variable": "$.data.Item.status.S "
+                    },
+                    {
+                      "IsPresent": true,
+                      "Variable": "$.result"
+                    }
+                  ],
+                  "Next": "Pass"
+                }
+              ],
+              "Default": "Revoke Permission",
+              "Type": "Choice"
+            },
+            "Revoked || Ended ?": {
+              "Choices": [
+                {
+                  "Next": "DynamoDB Update EndTime",
+                  "StringEquals": "revoked",
+                  "Variable": "$.data.Item.status.S"
+                }
+              ],
+              "Default": "Update Request Status",
+              "Type": "Choice"
+            },
+            "Update Request Status": {
+              "Next": "Revoke Error?",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamstatus.arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
+            "Notify Requester Session Ended - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "Revoked || Ended ?",
+              "ResultPath": "$.lastTaskResult",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Revoked || Ended ?",
+                  "ResultPath": "$.error"
+                }
+              ]
+            },
+            "Notify Error - Slack": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName.$": "$.fn_teamnotifyslack_arn"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
               "ResultPath": "$.lastTaskResult",
               "End": true
             }
@@ -894,39 +1175,45 @@
           ]
         },
         "Definition": {
-          "Comment": "Temporary Elevated Access Management Approval state machine",
-          "StartAt": "Notify Approvers - Choice",
+          "Comment": "Temporary Elevated Access Management -  Approval state machine",
+          "StartAt": "Notify Approvers Pending - Notification Type",
           "States": {
-            "Notify Approvers - Choice": {
-              "Type": "Choice",
+            "DynamoDB GetStatus": {
+              "Next": "Pending?",
+              "Parameters": {
+                "Key": {
+                  "id": {
+                    "S.$": "$.id"
+                  }
+                },
+                "TableName.$": "$.requests_table"
+              },
+              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "ResultPath": "$.result",
+              "Type": "Task"
+            },
+            "Notify Approvers Pending - Notification Type": {
               "Choices": [
                 {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Approvers Pending - SNS",
                   "StringEquals": "SNS",
-                  "Next": "Notify Approvers - SNS"
+                  "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Approvers Pending - SES",
                   "StringEquals": "SES",
-                  "Next": "Notify Approvers - SES"
+                  "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
+                  "Next": "Notify Approvers Pending - Slack",
                   "StringEquals": "Slack",
-                  "Next": "Notify Approvers - Slack"
+                  "Variable": "$.notification_service"
                 }
               ],
-              "Default": "Wait"
+              "Default": "Wait",
+              "Type": "Choice"
             },
-            "Notify Approvers - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
-              "Parameters": {
-                "Message.$": "$",
-                "TopicArn.$": "$.notification_topic_arn"
-              },
-              "Next": "Wait",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Approvers Pending - SES": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -935,14 +1222,12 @@
                   "Next": "Wait",
                   "ResultPath": "$.error"
                 }
-              ]
-            },
-            "Notify Approvers - SES": {
-              "Type": "Task",
+              ],
+              "Next": "Wait",
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "$.approvers",
-                  "CcAddresses.$": "States.Array($.email)"
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "$.approvers"
                 },
                 "Message": {
                   "Body": {
@@ -959,24 +1244,9 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Next": "Wait",
-              "Catch": [
-                {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "Wait",
-                  "ResultPath": "$.error"
-                }
-              ]
+              "Type": "Task"
             },
-            "Notify Approvers - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Next": "Wait",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Approvers Pending - SNS": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -985,96 +1255,71 @@
                   "Next": "Wait",
                   "ResultPath": "$.error"
                 }
-              ]
-            },
-            "Wait": {
-              "Type": "Wait",
-              "Next": "DynamoDB GetStatus",
-              "SecondsPath": "$.expire"
-            },
-            "DynamoDB GetStatus": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:getItem",
-              "Parameters": {
-                "TableName.$": "$.requests_table",
-                "Key": { "id": { "S.$": "$.id" } }
-              },
-              "Next": "Pending ?",
-              "ResultPath": "$.result"
-            },
-            "Pending ?": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.result.Item.status.S",
-                  "StringEquals": "pending",
-                  "Next": "Update Request Status"
-                }
               ],
-              "Default": "Pass"
-            },
-            "Update Request Status": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": { "Payload.$": "$", "FunctionName.$": "$.fn_teamstatus.arn" },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Notify Requester - Choice",
-              "ResultPath": "$.Payload"
-            },
-            "Notify Requester - Choice": {
-              "Type": "Choice",
-              "Choices": [
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SNS",
-                  "Next": "Notify Requester Expired - SNS"
-                },
-                {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "SES",
-                  "Next": "Notify Requester Expired - SES"
-                }
-              ],
-              "Default": "Pass"
-            },
-            "Notify Requester Expired - SNS": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
+              "Next": "Wait",
               "Parameters": {
                 "Message.$": "$",
                 "TopicArn.$": "$.notification_topic_arn"
               },
-              "End": true,
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Approvers Pending - Slack": {
               "Catch": [
                 {
-                  "ErrorEquals": ["States.ALL"],
-                  "Next": "Pass"
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Wait",
+                  "ResultPath": "$.error"
                 }
               ],
-              "ResultPath": "$.lastTaskResult"
+              "Next": "Wait",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
             },
-            "Pass": {
-              "Type": "Pass",
-              "End": true
+            "Notify Requester Expired - Notification Type": {
+              "Choices": [
+                {
+                  "Next": "Notify Requester Expired - SNS",
+                  "StringEquals": "SNS",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Next": "Notify Requester Expired - SES",
+                  "StringEquals": "SES",
+                  "Variable": "$.notification_service"
+                },
+                {
+                  "Variable": "$.notification_service",
+                  "StringEquals": "Slack",
+                  "Next": "Notify Requester Expired - Slack"
+                }
+              ],
+              "Default": "Pass",
+              "Type": "Choice"
             },
             "Notify Requester Expired - SES": {
-              "Type": "Task",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Pass",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "End": true,
               "Parameters": {
                 "Destination": {
-                  "ToAddresses.$": "States.Array($.email)",
-                  "CcAddresses.$": "$.approvers"
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
                 },
                 "Message": {
                   "Body": {
@@ -1091,10 +1336,83 @@
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Expired - SNS": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Pass"
+                }
+              ],
+              "End": true,
+              "Parameters": {
+                "Message.$": "$",
+                "TopicArn.$": "$.notification_topic_arn"
+              },
+              "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Pass": {
+              "End": true,
+              "Type": "Pass"
+            },
+            "Pending?": {
+              "Choices": [
+                {
+                  "Next": "Update Request Status",
+                  "StringEquals": "pending",
+                  "Variable": "$.result.Item.status.S"
+                }
+              ],
+              "Default": "Pass",
+              "Type": "Choice"
+            },
+            "Update Request Status": {
+              "Next": "Notify Requester Expired - Notification Type",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamstatus.arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.Payload",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
+            "Wait": {
+              "Next": "DynamoDB GetStatus",
+              "SecondsPath": "$.expire",
+              "Type": "Wait"
+            },
+            "Notify Requester Expired - Slack": {
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task",
               "End": true,
               "Catch": [
                 {
-                  "ErrorEquals": ["States.ALL"],
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
                   "Next": "Pass",
                   "ResultPath": "$.error"
                 }
