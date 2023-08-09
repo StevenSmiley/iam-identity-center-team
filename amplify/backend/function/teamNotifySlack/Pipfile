@@ -9,7 +9,6 @@ verify_ssl = true
 src = {editable = true, path = "./src"}
 boto3 = "*"
 slack_sdk = "*"
-dateutil = "*"
 
 [requires]
 python_version = "3.11"
