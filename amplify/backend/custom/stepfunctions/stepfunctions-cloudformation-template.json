@@ -494,7 +494,7 @@
                     },
                     {
                       "Variable": "$.ses_source_arn",
-                      "StringEquals": "\"\""
+                      "StringEquals": ""
                     }
                   ],
                   "Next": "Notify Requester Scheduled - SES"
