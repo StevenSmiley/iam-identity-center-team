@@ -271,7 +271,8 @@ function Settings(props) {
               <div>
                 <Box variant="awsui-key-label">SES source email</Box>
                 <> {sesSourceEmail !== null ? <div>{sesSourceEmail}</div> : <Spinner /> }</>
-                <Box variant="awsui-key-label">SES source arn (optional, for cross-account SES identities)</Box>
+                <br />
+                <Box variant="awsui-key-label">SES source arn</Box>
                 <> {sesSourceArn !== null ? <div>{sesSourceArn}</div> : <Spinner /> }</>
               </div>
               )}
@@ -443,6 +444,7 @@ function Settings(props) {
                     Source email
                   </Input>
                 </FormField>
+                <br />
                 <FormField
                   label="Source ARN (Optional, for cross-account SES identities)"
                   stretch
