@@ -235,6 +235,9 @@ export const createSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
+      slackToken
     }
   }
 `;
@@ -253,6 +256,9 @@ export const updateSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
+      slackToken
     }
   }
 `;
@@ -271,6 +277,9 @@ export const deleteSettings = /* GraphQL */ `
       modifiedBy
       createdAt
       updatedAt
+      notificationService
+      sourceEmail
+      slackToken
     }
   }
 `;
