@@ -272,7 +272,7 @@ function Settings(props) {
                 <Box variant="awsui-key-label">SES source email</Box>
                 <> {sesSourceEmail !== null ? <div>{sesSourceEmail}</div> : <Spinner /> }</>
                 <br />
-                <Box variant="awsui-key-label">SES source arn</Box>
+                <Box variant="awsui-key-label">SES source ARN</Box>
                 <> {sesSourceArn !== null ? <div>{sesSourceArn}</div> : <Spinner /> }</>
               </div>
               )}
