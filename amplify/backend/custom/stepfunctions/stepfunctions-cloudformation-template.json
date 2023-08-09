@@ -1207,14 +1207,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Approvers Pending - SES",
-                  "StringEquals": "SES",
-                  "Variable": "$.notification_service"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Approvers Pending - SES"
                 },
                 {
                   "Next": "Notify Approvers Pending - Slack",
                   "StringEquals": "Slack",
                   "Variable": "$.notification_service"
+                },
+                {
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Approvers Pending - SES CrossAccount"
                 }
               ],
               "Default": "Wait",
@@ -1247,8 +1270,7 @@
                     "Data.$": "States.Format('TEAM elevated access approval request for {} to AWS account - {}({})', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -1300,14 +1322,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Requester Expired - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Requester Expired - SES"
+                },
+                {
+                  "Next": "Notify Requester Expired - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Requester Expired - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Requester Expired - SES CrossAccount"
                 }
               ],
               "Default": "Pass",
@@ -1323,7 +1368,6 @@
                   "ResultPath": "$.error"
                 }
               ],
-              "End": true,
               "Parameters": {
                 "Destination": {
                   "CcAddresses.$": "$.approvers",
@@ -1340,12 +1384,12 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) expired',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Type": "Task"
+              "Type": "Task",
+              "End": true
             },
             "Notify Requester Expired - SNS": {
               "Catch": [
@@ -1362,6 +1406,25 @@
                 "TopicArn.$": "$.notification_topic_arn"
               },
               "Resource": "arn:aws:states:::sns:publish",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Expired - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Pass",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "End": true,
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
@@ -1408,15 +1471,41 @@
               "SecondsPath": "$.expire",
               "Type": "Wait"
             },
-            "Notify Requester Expired - Slack": {
+            "Notify Approvers Pending - SES CrossAccount": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Wait",
+                  "ResultPath": "$.error"
+                }
+              ],
               "Parameters": {
-                "FunctionName.$": "$.fn_teamnotifyslack_arn",
-                "Payload.$": "$"
+                "Destination": {
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "$.approvers"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body><p>This is a TEAM approval request for <b>{}</b> to AWS account <b>{}({})</b></p><p><u><b>Session Length:</u></b> {}Hrs </p><p><u><b>Business Justification:</u></b> {} </p><p>Login to <a href=\"{}\">TEAM Application</a> to <b>approve or reject</b> request</p> </body></html>',$.email,$.accountName,$.accountId,$.time,$.justification,$.sso_login_url)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access approval request for {} to AWS account - {}({})', $.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
               },
-              "Resource": "arn:aws:states:::lambda:invoke",
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
               "Type": "Task",
-              "End": true,
+              "Next": "Wait"
+            },
+            "Notify Requester Expired - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -1425,7 +1514,30 @@
                   "Next": "Pass",
                   "ResultPath": "$.error"
                 }
-              ]
+              ],
+              "End": true,
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body><h4>TEAM elevated access request to AWS account - {} has Expired</h4><p> Contact your TEAM Administrator or Create New Request</p></body></html>',$.accountName)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) expired',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
             }
           }
         },
