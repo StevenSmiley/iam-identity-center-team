@@ -60,7 +60,7 @@ def lambda_handler(event: dict, context):
                 justification=justification,
                 ticket=ticket,
             )
-        case "approved":
+        case "approved" | "scheduled":
             # Notify requester request approved
             send_slack_notifications(
                 recipients=[requester],
@@ -91,19 +91,6 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[approvers],
                 message=f"{requester} cancelled this AWS access request.",
-                login_url=login_url,
-                role=role,
-                account=account,
-                request_start_time=request_start_time,
-                duration_hours=duration_hours,
-                justification=justification,
-                ticket=ticket,
-            )
-        case "scheduled":
-            # Notify requester access scheduled
-            send_slack_notifications(
-                recipients=[requester],
-                message="AWS access is scheduled.",
                 login_url=login_url,
                 role=role,
                 account=account,
