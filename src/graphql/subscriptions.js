@@ -65,7 +65,8 @@ export const onCreateSettings = /* GraphQL */ `
       createdAt
       updatedAt
       notificationService
-      sourceEmail
+      sesSourceEmail
+      sesSourceArn
       slackToken
     }
   }
@@ -83,7 +84,8 @@ export const onUpdateSettings = /* GraphQL */ `
       createdAt
       updatedAt
       notificationService
-      sourceEmail
+      sesSourceEmail
+      sesSourceArn
       slackToken
     }
   }
@@ -101,7 +103,8 @@ export const onDeleteSettings = /* GraphQL */ `
       createdAt
       updatedAt
       notificationService
-      sourceEmail
+      sesSourceEmail
+      sesSourceArn
       slackToken
     }
   }

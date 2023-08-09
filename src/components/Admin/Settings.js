@@ -28,8 +28,10 @@ function Settings(props) {
   const [notificationService, setNotificationService] = useState(null);
   const [slackToken, setSlackToken] = useState("");
   const [slackTokenError, setSlackTokenError] = useState("");
-  const [sourceEmail, setSourceEmail] = useState(null);
-  const [sourceEmailError, setSourceEmailError] = useState(null);
+  const [sesSourceEmail, setSesSourceEmail] = useState(null);
+  const [sesSourceEmailError, setSesSourceEmailError] = useState(null);
+  const [sesSourceArn, setSesSourceArn] = useState(null);
+  const [sesSourceArnError, setSesSourceArnError] = useState(null);
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
@@ -92,8 +94,12 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
-      if (notificationService === "SES" && !emailRegex.test(sourceEmail)) {
-        setSourceEmailError(`Enter a valid email address`);
+      if (notificationService === "SES" && !emailRegex.test(sesSourceEmail)) {
+        setSesSourceEmailError(`Enter a valid email address`);
+        error = true;
+      }
+      if (notificationService === "SES" && !(sesSourceArn === "" || sesSourceArn.startsWith("arn:"))) {
+        setSesSourceArnError(`Enter a valid ARN for an SES identity, or leave blank if using an identity in the TEAM account`);
         error = true;
       }
       if (notificationService === "Slack") {
@@ -121,7 +127,8 @@ function Settings(props) {
     setTicketNo(item.ticketNo);
     setApproval(item.approval);
     setNotificationService(item.notificationService);
-    setSourceEmail(item.sourceEmail);
+    setSesSourceEmail(item.sesSourceEmail);
+    setSesSourceArn(item.sesSourceArn);
     setSlackToken(item.slackToken);
     setVisible(false);
   }
@@ -136,7 +143,8 @@ function Settings(props) {
         ticketNo,
         approval,
         notificationService,
-        sourceEmail,
+        sesSourceEmail,
+        sesSourceArn,
         slackToken,
       };
       const action = item === null ? createSetting : updateSetting;
@@ -165,7 +173,8 @@ function Settings(props) {
         setTicketNo(data.ticketNo);
         setApproval(data.approval);
         setNotificationService(data.notificationService);
-        setSourceEmail(data.sourceEmail);
+        setSesSourceEmail(data.sesSourceEmail);
+        setSesSourceArn(data.sesSourceArn);
         setSlackToken(data.slackToken);
       } else {
         setDuration("9");
@@ -174,7 +183,8 @@ function Settings(props) {
         setTicketNo(true);
         setApproval(true);
         setNotificationService("None");
-        setSourceEmail("");
+        setSesSourceEmail("");
+        setSesSourceArn("");
         setSlackToken("");
       }
     });
@@ -260,7 +270,9 @@ function Settings(props) {
               {notificationService === "SES" && (
               <div>
                 <Box variant="awsui-key-label">SES source email</Box>
-                <> {sourceEmail !== null ? <div>{sourceEmail}</div> : <Spinner /> }</>
+                <> {sesSourceEmail !== null ? <div>{sesSourceEmail}</div> : <Spinner /> }</>
+                <Box variant="awsui-key-label">SES source arn (optional, for cross-account SES identities)</Box>
+                <> {sesSourceArn !== null ? <div>{sesSourceArn}</div> : <Spinner /> }</>
               </div>
               )}
               {notificationService === "Slack" && (
@@ -395,10 +407,11 @@ function Settings(props) {
                   onChange={({ detail }) => {
                     setNotificationService(detail.value)
                     if (notificationService === "SES") { setSlackToken("") }
-                    if (notificationService === "Slack") { setSourceEmail("") }
+                    if (notificationService === "Slack") { setSesSourceEmail("") }
                     if (notificationService === "SNS" | notificationService === "None") {
                       setSlackToken("")
-                      setSourceEmail("")
+                      setSesSourceEmail("")
+                      setSesSourceArn("")
                     }
                   }}
                   value={notificationService}
@@ -413,22 +426,40 @@ function Settings(props) {
                 </RadioGroup>
               </FormField>
               {notificationService === "SES" && (
-                <FormField
+                <div>
+                  <FormField
                   label="Source email"
                   stretch
                   description="Email address to send notifications from, when using SES as the notification service. Must be verified in SES."
-                  errorText={sourceEmailError}
+                  errorText={sesSourceEmailError}
                 >
                   <Input
-                    value={sourceEmail}
+                    value={sesSourceEmail}
                     onChange={(event) => {
-                      setSourceEmailError()
-                      setSourceEmail(event.detail.value)
+                      setSesSourceEmailError()
+                      setSesSourceEmail(event.detail.value)
                     }}
                   >
                     Source email
                   </Input>
                 </FormField>
+                <FormField
+                  label="Source ARN (Optional, for cross-account SES identities)"
+                  stretch
+                  description="ARN of a verified SES identity in another AWS account. Must be configured to authorize sending mail from this account."
+                  errorText={sesSourceArnError}
+                >
+                  <Input
+                    value={sesSourceArn}
+                    onChange={(event) => {
+                      setSesSourceArnError()
+                      setSesSourceArn(event.detail.value)
+                    }}
+                  >
+                    Source email
+                  </Input>
+                </FormField>
+                </div>
               )}
               {notificationService === "Slack" && (
                   <FormField

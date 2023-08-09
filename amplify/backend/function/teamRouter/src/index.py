@@ -286,11 +286,13 @@ def check_settings():
     approval_required = item_settings.get("approval", True)
     expiry = int(item_settings.get("expiry", 3)) * 60 * 60
     max_duration = item_settings.get("duration", "9")
-    notification_service = item_settings.get("notificationService")
-    source_email = item_settings.get("sourceEmail")
+    notification_service = item_settings.get("notificationService", "None")
+    ses_source_email = item_settings.get("sesSourceEmail", "")
+    ses_source_arn = item_settings.get("sesSourceEmail", "")
     notification_config = {
         "notification_service": notification_service,
-        "source_email": source_email,
+        "ses_source_email": ses_source_email,
+        "ses_source_arn": ses_source_arn,
         "notification_topic_arn": notification_topic_arn,
     }
     return {

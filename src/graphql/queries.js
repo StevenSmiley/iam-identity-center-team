@@ -259,7 +259,8 @@ export const getSettings = /* GraphQL */ `
       createdAt
       updatedAt
       notificationService
-      sourceEmail
+      sesSourceEmail
+      sesSourceArn
       slackToken
     }
   }
@@ -282,7 +283,8 @@ export const listSettings = /* GraphQL */ `
         createdAt
         updatedAt
         notificationService
-        sourceEmail
+        sesSourceEmail
+        sesSourceArn
         slackToken
       }
       nextToken

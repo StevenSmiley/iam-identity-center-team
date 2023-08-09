@@ -94,7 +94,8 @@ type Settings
   approval: Boolean
   modifiedBy: String
   notificationService: String
-  sourceEmail: String
+  sesSourceEmail: String
+  sesSourceArn: String
   slackToken: String
 }
 type data {

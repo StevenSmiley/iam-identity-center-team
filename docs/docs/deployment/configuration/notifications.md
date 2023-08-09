@@ -12,11 +12,12 @@ TEAM supports email notification via Amazon SES, Slack notification via a custom
 
 ## Notification Types
 ### Email notification via Amazon SES
-- Enable Amazon SES in the **TEAM deployment account**. For production use case, move SES account out of **sandbox mode**  - [Moving out of the Amazon SES sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
+TEAM supports email notifications via Amazon SES either in the TEAM deployment account, or in another AWS account if authorized.
+- To use Amazon SES in the **TEAM deployment account**, enable it, and for production use cases, move SES out of **sandbox mode** - [Moving out of the Amazon SES sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
 - Designate a verified email address in Amazon SES for originating approval and TEAM workflow notifications - [Verifying identities in Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/verify-addresses-and-domains.html)
   > If your SES account is in sandbox mode, and for testing, make sure all requester, approver and notification email addresses are verified in SES otherwise TEAM notification would not function as expected.
   {: .note}
-- As a TEAM administrator, navigate to the Settings page. Set the notification service to Amazon SES and enter the notification source email address.
+- As a TEAM administrator, navigate to the Settings page. Set the notification service to Amazon SES and enter the notification source email address. If using an SES identity in another account, set the SES Source ARN, otherwise leave it blank.
 
 ### Slack notifications
 - As a TEAM administrator, navigate to the Settings page. 

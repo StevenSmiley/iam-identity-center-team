@@ -112,7 +112,7 @@
               "Parameters": {
                 "Destination": {
                   "CcAddresses.$": "States.Array($.email)",
-                  "ToAddresses.$": "States.Array($.source_email)"
+                  "ToAddresses.$": "States.Array($.ses_source_email)"
                 },
                 "Message": {
                   "Body": {
@@ -125,7 +125,8 @@
                     "Data.$": "States.Format('Error Notification - TEAM elevated access request for {} to AWS account {}({})',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -189,7 +190,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to Account {}({}) has started',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -421,7 +423,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) approved', $.email, $.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -610,7 +613,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to account {}({}) cancelled', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -682,7 +686,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account {}({}) rejected', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -889,7 +894,7 @@
               "Parameters": {
                 "Destination": {
                   "CcAddresses.$": "$.approvers",
-                  "ToAddresses.$": "States.Array($.source_email)"
+                  "ToAddresses.$": "States.Array($.ses_source_email)"
                 },
                 "Message": {
                   "Body": {
@@ -902,7 +907,8 @@
                     "Data.$": "States.Format('Error Notification - TEAM Request for {} to AWS account - {}({})',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -966,7 +972,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) has ended',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -1240,7 +1247,8 @@
                     "Data.$": "States.Format('TEAM elevated access approval request for {} to AWS account - {}({})', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -1332,7 +1340,8 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) expired',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.source_email)"
+                "Source.$": "States.Array($.ses_source_email)",
+                "SourceArn.$": "States.Array($.ses_source_arn)"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
