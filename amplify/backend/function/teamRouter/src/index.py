@@ -288,7 +288,7 @@ def check_settings():
     max_duration = item_settings.get("duration", "9")
     notification_service = item_settings.get("notificationService", "None")
     ses_source_email = item_settings.get("sesSourceEmail", "")
-    ses_source_arn = item_settings.get("sesSourceEmail", "")
+    ses_source_arn = item_settings.get("sesSourceArn", "")
     notification_config = {
         "notification_service": notification_service,
         "ses_source_email": ses_source_email,
