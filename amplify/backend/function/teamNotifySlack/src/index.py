@@ -108,6 +108,11 @@ def send_slack_notifications(
 
 def lambda_handler(event: dict, context):
     request_status = event["status"]
+    grant_status = (
+        event.get("grant", {})
+        .get("AccountAssignmentCreationStatus", {})
+        .get("Status", "")
+    )
     requester = event["email"]
     approvers = event.get("approvers", "")
     account = f'{event["accountName"]} ({event["accountId"]})'
@@ -145,19 +150,33 @@ def lambda_handler(event: dict, context):
                 justification=justification,
                 ticket=ticket,
             )
-        case "approved" | "scheduled":
-            # Notify requester request approved
-            send_slack_notifications(
-                recipients=[requester],
-                message=f"Your AWS access request was approved by {event['approver']}.",
-                login_url=login_url,
-                role=role,
-                account=account,
-                request_start_time=request_start_time,
-                duration_hours=duration_hours,
-                justification=justification,
-                ticket=ticket,
-            )
+        case "approved":
+            if grant_status == "IN_PROGRESS":
+                # Notify requester access granted
+                send_slack_notifications(
+                    recipients=[requester],
+                    message="Your AWS access session has started.",
+                    login_url=login_url,
+                    role=role,
+                    account=account,
+                    request_start_time=request_start_time,
+                    duration_hours=duration_hours,
+                    justification=justification,
+                    ticket=ticket,
+                )
+            else:
+                # Notify requester request approved
+                send_slack_notifications(
+                    recipients=[requester],
+                    message=f"Your AWS access request was approved by {event['approver']}.",
+                    login_url=login_url,
+                    role=role,
+                    account=account,
+                    request_start_time=request_start_time,
+                    duration_hours=duration_hours,
+                    justification=justification,
+                    ticket=ticket,
+                )
         case "rejected":
             # Notify requester request rejected
             send_slack_notifications(
@@ -176,19 +195,6 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=[approvers],
                 message=f"{requester} cancelled this AWS access request.",
-                login_url=login_url,
-                role=role,
-                account=account,
-                request_start_time=request_start_time,
-                duration_hours=duration_hours,
-                justification=justification,
-                ticket=ticket,
-            )
-        case "in progress":
-            # Notify requester access granted
-            send_slack_notifications(
-                recipients=[requester],
-                message="Your AWS access session has started.",
                 login_url=login_url,
                 role=role,
                 account=account,
