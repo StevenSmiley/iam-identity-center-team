@@ -36,13 +36,13 @@ function Settings(props) {
 
   const slackAppManifest = {
     display_information: {
-      name: 'AWS TEAM Access Requests',
+      name: 'AWS IAM TEAM',
       description: 'AWS Temporary Elevated Access Management',
       background_color: '#252F3E',
     },
     features: {
       bot_user: {
-        display_name: 'AWS TEAM',
+        display_name: 'AWS IAM TEAM',
         always_online: false,
       },
     },
