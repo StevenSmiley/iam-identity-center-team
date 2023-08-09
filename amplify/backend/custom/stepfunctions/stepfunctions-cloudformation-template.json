@@ -94,21 +94,43 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Error - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Error - SES"
+                },
+                {
+                  "Next": "Notify Error - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Error - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Error - SES CrossAccount"
                 }
               ],
               "Default": "Pass",
               "Type": "Choice"
             },
             "Notify Error - SES": {
-              "End": true,
               "Parameters": {
                 "Destination": {
                   "CcAddresses.$": "States.Array($.email)",
@@ -125,12 +147,12 @@
                     "Data.$": "States.Format('Error Notification - TEAM elevated access request for {} to AWS account {}({})',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Type": "Task"
+              "Type": "Task",
+              "End": true
             },
             "Notify Error - SNS": {
               "End": true,
@@ -142,6 +164,29 @@
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
+            "Notify Error - Slack": {
+              "End": true,
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
             "Notify Requester Started - Notification Type": {
               "Choices": [
                 {
@@ -150,14 +195,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Started - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Started - SES"
+                },
+                {
+                  "Next": "Notify Started - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Started - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Started - SES CrossAccount"
                 }
               ],
               "Default": "Wait",
@@ -190,8 +258,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to Account {}({}) has started',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -214,6 +281,38 @@
               },
               "Resource": "arn:aws:states:::sns:publish",
               "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Started - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Wait",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Wait",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
               "Type": "Task"
             },
             "Pass": {
@@ -257,28 +356,7 @@
               "SecondsPath": "$.duration",
               "Type": "Wait"
             },
-            "Notify Started - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Wait",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Started - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -287,30 +365,55 @@
                   "Next": "Wait",
                   "ResultPath": "$.error"
                 }
-              ]
-            },
-            "Notify Error - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
               ],
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>TEAM elevated access for {} to account {}({}) is <b>in progress</b> and would expire in <b>{} hours</b><p>You will get a notification when elevated access expires</p></body></html>',$.email,$.accountName,$.accountId,$.time)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to Account {}({}) has started',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "End": true
+              "Type": "Task",
+              "Next": "Wait"
+            },
+            "Notify Error - SES CrossAccount": {
+              "End": true,
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "States.Array($.ses_source_email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>This is an error notification for TEAM elevated access request to account <b>{}({})</b> for <b>{}</b><p> The permission set <b>{}</b> has not been successfully attached to the requester entity. </p><p><p>Use the request info below to review step function workflow logs to troubleshoot the error.</p><b><u>Request info</u></b><p>Step function workflow name: <b>{}</b><p>Step function execution name: <b>{}</b></p><p>Step function execution Id: <b>{}</b></body></html>',$.accountName,$.accountId,$.email,$.role,$$.StateMachine.Name,$$.Execution.Name,$$.Execution.Id)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('Error Notification - TEAM elevated access request for {} to AWS account {}({})',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
             }
           }
         },
@@ -384,14 +487,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Requester Scheduled - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": "\"\""
+                    }
+                  ],
+                  "Next": "Notify Requester Scheduled - SES"
+                },
+                {
+                  "Next": "Notify Requester Scheduled - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Requester Scheduled - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Requester Scheduled - SES CrossAccount"
                 }
               ],
               "Default": "Schedule",
@@ -423,8 +549,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) approved', $.email, $.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -449,9 +574,46 @@
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
+            "Notify Requester Scheduled - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Schedule",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Schedule",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
             "Pass": {
               "End": true,
               "Type": "Pass"
+            },
+            "Schedule": {
+              "Next": "DynamoDB GetStatus",
+              "TimestampPath": "$.startTime",
+              "Type": "Wait"
             },
             "Scheduled?": {
               "Choices": [
@@ -487,33 +649,7 @@
               ],
               "Type": "Task"
             },
-            "Schedule": {
-              "Next": "DynamoDB GetStatus",
-              "TimestampPath": "$.startTime",
-              "Type": "Wait"
-            },
-            "Notify Requester Scheduled - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Schedule",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Requester Scheduled - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -522,7 +658,29 @@
                   "Next": "Schedule",
                   "ResultPath": "$.error"
                 }
-              ]
+              ],
+              "Parameters": {
+                "Destination": {
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body><h4>TEAM elevated access request for {} to AWS account {}({}) has been <b>approved</b> for {} hour </h4><p> You will get a notification when elevated access has started </p></body></html>',$.email,$.accountName,$.accountId,$.time)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) approved', $.email, $.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task",
+              "Next": "Schedule"
             }
           }
         },
@@ -573,14 +731,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Requester Cancelled - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Requester Cancelled - SES"
+                },
+                {
+                  "Next": "Notify Requester Cancelled - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Requester Cancelled - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Requester Cancelled - SES CrossAccount"
                 }
               ],
               "Default": "Success",
@@ -613,8 +794,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to account {}({}) cancelled', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -639,6 +819,38 @@
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
+            "Notify Requester Cancelled - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Success",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
             "Notify Requester Rejected - Notification Type": {
               "Choices": [
                 {
@@ -647,14 +859,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Requester Rejected - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Requester Rejected - SES"
+                },
+                {
+                  "Next": "Notify Requester Rejected - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Requester Rejected - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Requester Rejected - SES CrossAccount"
                 }
               ],
               "Default": "Success",
@@ -686,8 +921,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account {}({}) rejected', $.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -712,6 +946,38 @@
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
+            "Notify Requester Rejected - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Success",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Success",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
             "Status?": {
               "Choices": [
                 {
@@ -730,28 +996,7 @@
             "Success": {
               "Type": "Succeed"
             },
-            "Notify Requester Cancelled - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Success",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Requester Cancelled - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -760,29 +1005,32 @@
                   "Next": "Success",
                   "ResultPath": "$.error"
                 }
-              ]
+              ],
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "States.Array($.email)",
+                  "ToAddresses.$": "$.approvers"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>TEAM elevated access approval request for <b>{}</b> to account <b>{}({})</b> has been <b>cancelled</b> by the requester </body></html>',$.email,$.accountName,$.accountId)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to account {}({}) cancelled', $.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task",
+              "Next": "Success"
             },
-            "Notify Requester Rejected - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "ResultPath": "$.lastTaskResult",
+            "Notify Requester Rejected - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -792,6 +1040,27 @@
                   "ResultPath": "$.error"
                 }
               ],
+              "Parameters": {
+                "Destination": {
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>TEAM elevated access request for <b>{}</b> to account <b>{}({})</b> has been <b>rejected</b><p> Check your TEAM request details for more information </p></body></html>',$.email,$.accountName,$.accountId)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account {}({}) rejected', $.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task",
               "Next": "Success"
             }
           }
@@ -876,21 +1145,43 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Error - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Error - SES"
+                },
+                {
+                  "Next": "Notify Error - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Error - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Error - SES CrossAccount"
                 }
               ],
               "Default": "Pass",
               "Type": "Choice"
             },
             "Notify Error - SES": {
-              "End": true,
               "Parameters": {
                 "Destination": {
                   "CcAddresses.$": "$.approvers",
@@ -907,12 +1198,12 @@
                     "Data.$": "States.Format('Error Notification - TEAM Request for {} to AWS account - {}({})',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "Type": "Task"
+              "Type": "Task",
+              "End": true
             },
             "Notify Error - SNS": {
               "End": true,
@@ -924,6 +1215,29 @@
               "ResultPath": "$.lastTaskResult",
               "Type": "Task"
             },
+            "Notify Error - Slack": {
+              "End": true,
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
+              "Type": "Task"
+            },
             "Notify Requester Session Ended - Notification Type": {
               "Choices": [
                 {
@@ -932,14 +1246,37 @@
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Next": "Notify Requester Session Ended - SES",
-                  "StringEquals": "SES",
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Variable": "$.ses_source_arn",
+                      "StringEquals": ""
+                    }
+                  ],
+                  "Next": "Notify Requester Session Ended - SES"
+                },
+                {
+                  "Next": "Notify Requester Session Ended - Slack",
+                  "StringEquals": "Slack",
                   "Variable": "$.notification_service"
                 },
                 {
-                  "Variable": "$.notification_service",
-                  "StringEquals": "Slack",
-                  "Next": "Notify Requester Session Ended - Slack"
+                  "And": [
+                    {
+                      "Variable": "$.notification_service",
+                      "StringEquals": "SES"
+                    },
+                    {
+                      "Not": {
+                        "Variable": "$.ses_source_arn",
+                        "StringEquals": ""
+                      }
+                    }
+                  ],
+                  "Next": "Notify Requester Session Ended - SES CrossAccount"
                 }
               ],
               "Default": "Revoked || Ended ?",
@@ -972,8 +1309,7 @@
                     "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) has ended',$.email,$.accountName,$.accountId)"
                   }
                 },
-                "Source.$": "States.Array($.ses_source_email)",
-                "SourceArn.$": "States.Array($.ses_source_arn)"
+                "Source.$": "$.ses_source_email"
               },
               "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
@@ -996,6 +1332,38 @@
               },
               "Resource": "arn:aws:states:::sns:publish",
               "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
+            },
+            "Notify Requester Session Ended - Slack": {
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "Revoked || Ended ?",
+                  "ResultPath": "$.error"
+                }
+              ],
+              "Next": "Revoked || Ended ?",
+              "Parameters": {
+                "FunctionName.$": "$.fn_teamnotifyslack_arn",
+                "Payload.$": "$"
+              },
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "ResultPath": "$.lastTaskResult",
+              "Retry": [
+                {
+                  "BackoffRate": 2,
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6
+                }
+              ],
               "Type": "Task"
             },
             "Pass": {
@@ -1036,6 +1404,17 @@
               "ResultPath": "$.revoke",
               "Type": "Task"
             },
+            "Revoked || Ended ?": {
+              "Choices": [
+                {
+                  "Next": "DynamoDB Update EndTime",
+                  "StringEquals": "revoked",
+                  "Variable": "$.data.Item.status.S"
+                }
+              ],
+              "Default": "Update Request Status",
+              "Type": "Choice"
+            },
             "Revoked?": {
               "Choices": [
                 {
@@ -1053,17 +1432,6 @@
                 }
               ],
               "Default": "Revoke Permission",
-              "Type": "Choice"
-            },
-            "Revoked || Ended ?": {
-              "Choices": [
-                {
-                  "Next": "DynamoDB Update EndTime",
-                  "StringEquals": "revoked",
-                  "Variable": "$.data.Item.status.S"
-                }
-              ],
-              "Default": "Update Request Status",
               "Type": "Choice"
             },
             "Update Request Status": {
@@ -1089,28 +1457,7 @@
               ],
               "Type": "Task"
             },
-            "Notify Requester Session Ended - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "Next": "Revoked || Ended ?",
-              "ResultPath": "$.lastTaskResult",
+            "Notify Requester Session Ended - SES CrossAccount": {
               "Catch": [
                 {
                   "ErrorEquals": [
@@ -1119,30 +1466,55 @@
                   "Next": "Revoked || Ended ?",
                   "ResultPath": "$.error"
                 }
-              ]
-            },
-            "Notify Error - Slack": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "Payload.$": "$",
-                "FunctionName.$": "$.fn_teamnotifyslack_arn"
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
               ],
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>TEAM elevated access for <b>{}</b> to AWS account - <b>{}({})</b> has <b>ended</b><p> Elevated access has been removed </p><p>Login to <a href=\"{}\">TEAM Application</a> to view session activity logs</p></body></html>',$.email,$.accountName,$.accountId,$.sso_login_url)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('TEAM elevated access request for {} to AWS account - {}({}) has ended',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "ResultPath": "$.lastTaskResult",
-              "End": true
+              "Type": "Task",
+              "Next": "Revoked || Ended ?"
+            },
+            "Notify Error - SES CrossAccount": {
+              "End": true,
+              "Parameters": {
+                "Destination": {
+                  "CcAddresses.$": "$.approvers",
+                  "ToAddresses.$": "States.Array($.ses_source_email)"
+                },
+                "Message": {
+                  "Body": {
+                    "Html": {
+                      "Charset": "UTF-8",
+                      "Data.$": "States.Format('<html><body>This is an Error notification for TEAM elevated access request to AWS account - {}({}) for {}<p> The permission set <b>{}</b>has not been successfully removed from the requester entity. </p><p>Use the request info below to review step function workflow logs to troubleshoot the error.</p><b><u>Request info</u></b><p>Step function workflow name: <b>{}</b><p>Step function execution name: <b>{}</b></p><p>Step function execution Id: <b>{}</b></body></html>',$.accountName,$.accountId,$.email,$.role,$$.StateMachine.Name,$$.Execution.Name,$$.Execution.Id)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('Error Notification - TEAM Request for {} to AWS account - {}({})',$.email,$.accountName,$.accountId)"
+                  }
+                },
+                "Source.$": "$.ses_source_email",
+                "SourceArn.$": "$.ses_source_arn"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
+              "ResultPath": "$.lastTaskResult",
+              "Type": "Task"
             }
           }
         },
