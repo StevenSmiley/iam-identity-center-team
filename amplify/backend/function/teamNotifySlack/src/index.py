@@ -108,11 +108,16 @@ def send_slack_notifications(
 
 def lambda_handler(event: dict, context):
     request_status = event["status"]
-    grant_status = (
+    granted = (
         event.get("grant", {})
         .get("AccountAssignmentCreationStatus", {})
         .get("Status", "")
-    )
+        == "IN_PROGRESS")
+    ended = (
+        event.get("revoke", {})
+        .get("AccountAssignmentDeletionStatus", {})
+        .get("Status", "")
+        == "IN_PROGRESS")
     requester = event["email"]
     approvers = event.get("approvers", "")
     account = f'{event["accountName"]} ({event["accountId"]})'
@@ -151,7 +156,20 @@ def lambda_handler(event: dict, context):
                 ticket=ticket,
             )
         case "approved":
-            if grant_status == "IN_PROGRESS":
+            if ended:
+                # Notify requester ended
+                send_slack_notifications(
+                    recipients=[requester],
+                    message="Your AWS access session has ended.",
+                    login_url=login_url,
+                    role=role,
+                    account=account,
+                    request_start_time=request_start_time,
+                    duration_hours=duration_hours,
+                    justification=justification,
+                    ticket=ticket,
+                )
+            elif granted and not ended:
                 # Notify requester access granted
                 send_slack_notifications(
                     recipients=[requester],
@@ -208,19 +226,6 @@ def lambda_handler(event: dict, context):
             send_slack_notifications(
                 recipients=approvers + [requester],
                 message="Error with AWS access request.",
-                login_url=login_url,
-                role=role,
-                account=account,
-                request_start_time=request_start_time,
-                duration_hours=duration_hours,
-                justification=justification,
-                ticket=ticket,
-            )
-        case "ended" | "revoked":
-            # Notify requester ended
-            send_slack_notifications(
-                recipients=[requester],
-                message="Your AWS access session has ended.",
                 login_url=login_url,
                 role=role,
                 account=account,
