@@ -30,15 +30,26 @@ def send_ses_notification(
 ):
     ses_client = session.client("ses")
     try:
-        ses_client.send_email(
-            Source=source_email,
-            SourceArn=source_arn if source_arn else None,
-            Destination={"ToAddresses": to_addresses, "CcAddresses": cc_addresses},
-            Message={
-                "Subject": {"Data": subject, "Charset": "UTF-8"},
-                "Body": {"Html": {"Data": message_html, "Charset": "UTF-8"}},
-            },
-        )
+        # Providing a source arn enables using an SES identity in another account
+        if source_arn:
+            ses_client.send_email(
+                Source=source_email,
+                SourceArn=source_arn,
+                Destination={"ToAddresses": to_addresses, "CcAddresses": cc_addresses},
+                Message={
+                    "Subject": {"Data": subject, "Charset": "UTF-8"},
+                    "Body": {"Html": {"Data": message_html, "Charset": "UTF-8"}},
+                },
+            )
+        else:
+            ses_client.send_email(
+                Source=source_email,
+                Destination={"ToAddresses": to_addresses, "CcAddresses": cc_addresses},
+                Message={
+                    "Subject": {"Data": subject, "Charset": "UTF-8"},
+                    "Body": {"Html": {"Data": message_html, "Charset": "UTF-8"}},
+                },
+            )
     except Exception as e:
         print(f"Error sending email via SES: {e}")
 
@@ -175,6 +186,11 @@ def lambda_handler(event: dict, context):
             request_status = "ended"
         if granted and not ended:
             request_status = "granted"
+    event.update(
+        {
+            "status": request_status,
+        }
+    )
 
     requester = event["email"]
     approvers = event.get("approvers", "")
@@ -185,9 +201,8 @@ def lambda_handler(event: dict, context):
     justification = event.get("justification", "No justification provided")
     ticket = event.get("ticketNo", "No ticket provided")
     login_url = event["sso_login_url"]
+    sns_message = json.dumps(event)
 
-
-    # TODO: Create SNS message in JSON
     match request_status:
         case "pending":
             # Notify approvers pending request
@@ -197,7 +212,6 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [requester]
             subject = f"{requester} requests access to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p><b>{requester}</b> requests access to AWS, please <b>approve or reject this request</b> in <a href="{login_url}">TEAM</a>.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
         case "expired":
             # Notify requester request expired
             slack_recipients = [requester]
@@ -206,7 +220,6 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [approvers]
             subject = f"Expired access request for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has expired, please open <a href="{login_url}">TEAM</a> to submit a new request.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
         case "ended":
             # Notify requester ended
             slack_recipients = [requester]
@@ -215,7 +228,7 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [approvers]
             subject = f"AWS access session ended for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access session has ended, please open <a href="{login_url}">TEAM</a> to view session activity logs.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case "granted":
             # Notify requester access granted
             slack_recipients = [requester]
@@ -224,7 +237,7 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [approvers]
             subject = f"AWS access session started for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access session has started. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case "approved":
             # Notify requester request approved
             slack_recipients = [requester]
@@ -235,7 +248,7 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [approvers]
             subject = f"AWS access request approved for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has been approved by {event["approver"]}. You will receive a notification when the session has started. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case "rejected":
             # Notify requester request rejected
             slack_recipients = [requester]
@@ -244,7 +257,7 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [approvers]
             subject = f"AWS access request rejected for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has been rejected. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case "cancelled":
             # Notify approvers request cancelled
             slack_recipients = [approvers]
@@ -253,7 +266,7 @@ def lambda_handler(event: dict, context):
             email_cc_addresses = [requester]
             subject = f"AWS access request cancelled for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>{requester} cancelled an AWS access request. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case "error":
             # Notify approvers and requester error
             slack_recipients = approvers + [requester]
@@ -264,7 +277,7 @@ def lambda_handler(event: dict, context):
             subject = f"Error handling AWS access for {requester} to AWS account {account} - TEAM"
             # TODO: Include State Machine execution id, name, etc.
             email_message_html = f'<html><body><p>TEAM encountered an error handling AWS access for {requester}. Please review the Step Function logs to troubleshoot the error and ensure access is properly granted or revoked. Open <a href="{login_url}">TEAM</a> to view additional details.</p><p><b>Step Function Workflow Name:</b> TODO<br /><b>Step Function Execution Name:</b> TODO<br /><b>Step Function Execution Id:</b> TODO</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
-            sns_message = ""
+
         case _:
             print(f"Request status unexpected, exiting: {request_status}")
             exit
