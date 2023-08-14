@@ -24,8 +24,8 @@ function Settings(props) {
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
   const [sesNotificationsEnabled, setSesNotificationsEnabled] = useState(null);
-  const [slackNotificationsEnabled, setSlackNotificationsEnabled] = useState(null);
   const [snsNotificationsEnabled, setSnsNotificationsEnabled] = useState(null);
+  const [slackNotificationsEnabled, setSlackNotificationsEnabled] = useState(null);
   const [slackToken, setSlackToken] = useState("");
   const [slackTokenError, setSlackTokenError] = useState("");
   const [sesSourceEmail, setSesSourceEmail] = useState(null);
@@ -94,15 +94,15 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
-      if (sesNotificationsEnabled === "SES" && !emailRegex.test(sesSourceEmail)) {
+      if (sesNotificationsEnabled && !emailRegex.test(sesSourceEmail)) {
         setSesSourceEmailError(`Enter a valid email address`);
         error = true;
       }
-      if (sesNotificationsEnabled === "SES" && !(sesSourceArn === "" || sesSourceArn.startsWith("arn:"))) {
+      if (sesNotificationsEnabled && !(sesSourceArn === "" || sesSourceArn.startsWith("arn:"))) {
         setSesSourceArnError(`Enter a valid ARN for an SES identity, or leave blank if using an identity in the TEAM account`);
         error = true;
       }
-      if (slackNotificationsEnabled === "Slack") {
+      if (slackNotificationsEnabled) {
         if (!slackToken.startsWith("xoxb")) {
           setSlackTokenError(`Enter a valid Slack bot token`);
           error = true;
