@@ -485,7 +485,7 @@ function Settings(props) {
               <FormField
                 label="SNS notifications"
                 stretch
-                description="Send notifications via Amazon SNS"
+                description="Send notifications via Amazon SNS. Create an SNS subscription to topic arn:aws:sns..."
               >
                 <Toggle
                   onChange={({ detail }) => {
@@ -496,14 +496,10 @@ function Settings(props) {
                   Send SNS notifications
                 </Toggle>
               </FormField>
-              {snsNotificationsEnabled && (
-                // TODO: Display SNS topic arn?
-                "SNS Topic: arn:aws:sns..."
-              )}
               <FormField
                 label="Slack notifications"
                 stretch
-                description="Send notifications to Slack via a custom Slack app"
+                description={`Send notifications to Slack via a custom Slack app. <a href="${slackAppInstallUrl}" target="_blank">Install Slack App</a>`}
               >
                 <Toggle
                   onChange={({ detail }) => {
@@ -516,9 +512,8 @@ function Settings(props) {
               </FormField>
               {slackNotificationsEnabled && (
                 <div>
-                  <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link>
                   <FormField
-                    label="Slack OAuth Token"
+                    label="Slack OAuth token"
                     stretch
                     description="Slack OAuth token associated with the installed app."
                     errorText={slackTokenError}
