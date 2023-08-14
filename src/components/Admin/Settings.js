@@ -5,7 +5,6 @@
 import React, { useState, useEffect } from "react";
 import Box from "@awsui/components-react/box";
 import SpaceBetween from "@awsui/components-react/space-between";
-import RadioGroup from "@awsui/components-react/radio-group";
 import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
@@ -25,7 +24,9 @@ function Settings(props) {
   const [comments, setComments] = useState(null);
   const [ticketNo, setTicketNo] = useState(null);
   const [approval, setApproval] = useState(null);
-  const [notificationService, setNotificationService] = useState(null);
+  const [sesNotificationsEnabled, setSesNotificationsEnabled] = useState(null);
+  const [slackNotificationsEnabled, setSlackNotificationsEnabled] = useState(null);
+  const [snsNotificationsEnabled, setSnsNotificationsEnabled] = useState(null);
   const [slackToken, setSlackToken] = useState("");
   const [slackTokenError, setSlackTokenError] = useState("");
   const [sesSourceEmail, setSesSourceEmail] = useState(null);
@@ -94,15 +95,15 @@ function Settings(props) {
         setExpiryError(`Enter valid expiry timeout as a number between 1 - 8000`);
         error = true;
       }
-      if (notificationService === "SES" && !emailRegex.test(sesSourceEmail)) {
+      if (sesNotificationsEnabled === "SES" && !emailRegex.test(sesSourceEmail)) {
         setSesSourceEmailError(`Enter a valid email address`);
         error = true;
       }
-      if (notificationService === "SES" && !(sesSourceArn === "" || sesSourceArn.startsWith("arn:"))) {
+      if (sesNotificationsEnabled === "SES" && !(sesSourceArn === "" || sesSourceArn.startsWith("arn:"))) {
         setSesSourceArnError(`Enter a valid ARN for an SES identity, or leave blank if using an identity in the TEAM account`);
         error = true;
       }
-      if (notificationService === "Slack") {
+      if (slackNotificationsEnabled === "Slack") {
         if (!slackToken.startsWith("xoxb")) {
           setSlackTokenError(`Enter a valid Slack bot token`);
           error = true;
@@ -126,7 +127,9 @@ function Settings(props) {
     setComments(item.comments);
     setTicketNo(item.ticketNo);
     setApproval(item.approval);
-    setNotificationService(item.notificationService);
+    setSesNotificationsEnabled(item.sesNotificationsEnabled);
+    setSnsNotificationsEnabled(item.snsNotificationsEnabled);
+    setSlackNotificationsEnabled(item.slackNotificationsEnabled);
     setSesSourceEmail(item.sesSourceEmail);
     setSesSourceArn(item.sesSourceArn);
     setSlackToken(item.slackToken);
@@ -142,7 +145,9 @@ function Settings(props) {
         comments,
         ticketNo,
         approval,
-        notificationService,
+        sesNotificationsEnabled,
+        snsNotificationsEnabled,
+        slackNotificationsEnabled,
         sesSourceEmail,
         sesSourceArn,
         slackToken,
@@ -172,7 +177,9 @@ function Settings(props) {
         setComments(data.comments);
         setTicketNo(data.ticketNo);
         setApproval(data.approval);
-        setNotificationService(data.notificationService);
+        setSesNotificationsEnabled(data.sesNotificationsEnabled);
+        setSnsNotificationsEnabled(data.snsNotificationsEnabled);
+        setSlackNotificationsEnabled(data.slackNotificationsEnabled);
         setSesSourceEmail(data.sesSourceEmail);
         setSesSourceArn(data.sesSourceArn);
         setSlackToken(data.slackToken);
@@ -182,7 +189,9 @@ function Settings(props) {
         setComments(true);
         setTicketNo(true);
         setApproval(true);
-        setNotificationService("None");
+        setSesNotificationsEnabled(false);
+        setSnsNotificationsEnabled(false);
+        setSlackNotificationsEnabled(false);
         setSesSourceEmail("");
         setSesSourceArn("");
         setSlackToken("");
@@ -264,10 +273,17 @@ function Settings(props) {
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                <Box variant="awsui-key-label">Notification service</Box>
-                <> {notificationService !== null ?  <div>{notificationService}</div> : <Spinner />  }</>
+                <Box variant="awsui-key-label">Email notifications</Box>
+                <> {sesNotificationsEnabled !== null ? 
+                <div>
+                  <StatusIndicator type={sesNotificationsEnabled === true ? "success" : "error"}>
+                    {sesNotificationsEnabled === true ? "Yes" : "No"}
+                  </StatusIndicator>
+                </div>
+                :<Spinner /> 
+                }</>
               </div>
-              {notificationService === "SES" && (
+              {sesNotificationsEnabled === "SES" && (
               <div>
                 <Box variant="awsui-key-label">SES source email</Box>
                 <> {sesSourceEmail !== null ? <div>{sesSourceEmail}</div> : <Spinner /> }</>
@@ -276,12 +292,28 @@ function Settings(props) {
                 <> {sesSourceArn !== null ? <div>{sesSourceArn}</div> : <Spinner /> }</>
               </div>
               )}
-              {notificationService === "Slack" && (
               <div>
-                <Box variant="awsui-key-label">Slack OAuth Token</Box>
-                <> {slackToken !== null ? <div>********</div> : <Spinner /> }</>
+                <Box variant="awsui-key-label">SNS notifications</Box>
+                <> {snsNotificationsEnabled !== null ? 
+                <div>
+                  <StatusIndicator type={snsNotificationsEnabled === true ? "success" : "error"}>
+                    {snsNotificationsEnabled === true ? "Yes" : "No"}
+                  </StatusIndicator>
+                </div>
+                :<Spinner /> 
+                }</>
               </div>
-              )}
+              <div>
+                <Box variant="awsui-key-label">Slack notifications</Box>
+                <> {slackNotificationsEnabled !== null ? 
+                <div>
+                  <StatusIndicator type={slackNotificationsEnabled === true ? "success" : "error"}>
+                    {slackNotificationsEnabled === true ? "Yes" : "No"}
+                  </StatusIndicator>
+                </div>
+                :<Spinner /> 
+                }</>
+              </div>
             </SpaceBetween>
           </ColumnLayout>
         </Container>
@@ -400,38 +432,25 @@ function Settings(props) {
                 <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
               <FormField
-                label="Notification service"
+                label="Email notifications"
                 stretch
-                description="The AWS service to use to send notifications about request and approval events"
+                description="Send notifications via Amazon SES"
               >
-                <RadioGroup
+                <Toggle
                   onChange={({ detail }) => {
-                    setNotificationService(detail.value)
-                    if (notificationService === "SES") { setSlackToken("") }
-                    if (notificationService === "Slack") { setSesSourceEmail("") }
-                    if (notificationService === "SNS" | notificationService === "None") {
-                      setSlackToken("")
-                      setSesSourceEmail("")
-                      setSesSourceArn("")
-                    }
+                    setSesNotificationsEnabled(detail.checked)
                   }}
-                  value={notificationService}
-                  items={[
-                    { label: "Amazon SES", value: "SES" },
-                    { label: "Amazon SNS", value: "SNS" },
-                    { label: <div>Slack - <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link></div>, value: "Slack" },
-                    { label: "None", value: "None" },
-                  ]}
+                  checked={sesNotificationsEnabled}
                 >
-                  Notification service
-                </RadioGroup>
+                  Send email notifications
+                </Toggle>
               </FormField>
-              {notificationService === "SES" && (
+              {sesNotificationsEnabled && (
                 <div>
                   <FormField
                   label="Source email"
                   stretch
-                  description="Email address to send notifications from, when using SES as the notification service. Must be verified in SES."
+                  description="Email address to send notifications from. Must be verified in SES."
                   errorText={sesSourceEmailError}
                 >
                   <Input
@@ -448,7 +467,7 @@ function Settings(props) {
                 <FormField
                   label="Source ARN (Optional, for cross-account SES identities)"
                   stretch
-                  description="ARN of a verified SES identity in another AWS account. Must be configured to authorize sending mail from this account."
+                  description="ARN of a verified SES identity in another AWS account. Must be configured to authorize sending mail from the TEAM account."
                   errorText={sesSourceArnError}
                 >
                   <Input
@@ -463,7 +482,41 @@ function Settings(props) {
                 </FormField>
                 </div>
               )}
-              {notificationService === "Slack" && (
+              <FormField
+                label="SNS notifications"
+                stretch
+                description="Send notifications via Amazon SNS"
+              >
+                <Toggle
+                  onChange={({ detail }) => {
+                    setSnsNotificationsEnabled(detail.checked)
+                  }}
+                  checked={snsNotificationsEnabled}
+                >
+                  Send SNS notifications
+                </Toggle>
+              </FormField>
+              {snsNotificationsEnabled && (
+                // TODO: Display SNS topic arn?
+                "SNS Topic: arn:aws:sns..."
+              )}
+              <FormField
+                label="Slack notifications"
+                stretch
+                description="Send notifications to Slack via a custom Slack app"
+              >
+                <Toggle
+                  onChange={({ detail }) => {
+                    setSlackNotificationsEnabled(detail.checked)
+                  }}
+                  checked={slackNotificationsEnabled}
+                >
+                  Send Slack notifications
+                </Toggle>
+              </FormField>
+              {slackNotificationsEnabled && (
+                <div>
+                  <Link external href={slackAppInstallUrl} rel="noopener noreferrer">Install Slack App</Link>
                   <FormField
                     label="Slack OAuth Token"
                     stretch
@@ -481,6 +534,7 @@ function Settings(props) {
                       Slack token
                     </Input>
                   </FormField>
+                </div>
               )}
             </SpaceBetween>
           </Form>
