@@ -8,9 +8,9 @@
       "Type": "String",
       "Description": "Input parameter describing Arn attribute for function/teamStatus resource"
     },
-    "functionteamNotifySlackArn": {
+    "functionteamNotificationsArn": {
       "Type": "String",
-      "Description": "Input parameter describing Arn attribute for function/teamNotifySlack resource"
+      "Description": "Input parameter describing Arn attribute for function/teamNotifications resource"
     }
   },
   "Resources": {
@@ -1986,7 +1986,7 @@
                   "Effect": "Allow",
                   "Action": ["lambda:InvokeFunction"],
                   "Resource": {
-                    "Ref": "functionteamNotifySlackArn"
+                    "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
@@ -2074,7 +2074,7 @@
                   "Effect": "Allow",
                   "Action": ["lambda:InvokeFunction"],
                   "Resource": {
-                    "Ref": "functionteamNotifySlackArn"
+                    "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
@@ -2155,21 +2155,9 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": "ses:SendEmail",
-                  "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": "sns:Publish",
-                  "Resource": {
-                    "Fn::ImportValue": "NotificationTopicArn"
-                  }
-                },
-                {
-                  "Effect": "Allow",
                   "Action": ["lambda:InvokeFunction"],
                   "Resource": {
-                    "Ref": "functionteamNotifySlackArn"
+                    "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
@@ -2267,7 +2255,7 @@
                   "Effect": "Allow",
                   "Action": ["lambda:InvokeFunction"],
                   "Resource": {
-                    "Ref": "functionteamNotifySlackArn"
+                    "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
@@ -2358,7 +2346,7 @@
                   "Effect": "Allow",
                   "Action": ["lambda:InvokeFunction"],
                   "Resource": {
-                    "Ref": "functionteamNotifySlackArn"
+                    "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {

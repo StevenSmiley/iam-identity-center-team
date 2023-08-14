@@ -520,7 +520,7 @@ function Settings(props) {
                   >
                     Install Slack App
                   </Button>
-                  <br />
+                  <br /><br />
                   <FormField
                     label="Slack OAuth token"
                     stretch
