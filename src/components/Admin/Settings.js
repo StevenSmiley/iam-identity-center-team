@@ -9,7 +9,6 @@ import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
 import Button from "@awsui/components-react/button";
-import Link from "@awsui/components-react/link";
 import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@awsui/components-react";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import { Divider } from "antd";
@@ -499,7 +498,7 @@ function Settings(props) {
               <FormField
                 label="Slack notifications"
                 stretch
-                description={`Send notifications to Slack via a custom Slack app. <a href="${slackAppInstallUrl}" target="_blank">Install Slack App</a>`}
+                description="Send notifications directly to users in Slack via a Slack bot app."
               >
                 <Toggle
                   onChange={({ detail }) => {
@@ -512,6 +511,16 @@ function Settings(props) {
               </FormField>
               {slackNotificationsEnabled && (
                 <div>
+                  <Button
+                    ariaLabel="Install Slack App (opens new tab)"
+                    href={slackAppInstallUrl}
+                    iconAlign="right"
+                    iconName="external"
+                    target="_blank"
+                  >
+                    Install Slack App
+                  </Button>
+                  <br />
                   <FormField
                     label="Slack OAuth token"
                     stretch
