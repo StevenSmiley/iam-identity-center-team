@@ -276,7 +276,7 @@ function Settings(props) {
                 <> {sesNotificationsEnabled !== null ? 
                 <div>
                   <StatusIndicator type={sesNotificationsEnabled === true ? "success" : "error"}>
-                    {sesNotificationsEnabled === true ? "Yes" : "No"}
+                    {sesNotificationsEnabled === true ? sesSourceEmail : "Disabled"}
                   </StatusIndicator>
                 </div>
                 :<Spinner /> 
@@ -296,7 +296,7 @@ function Settings(props) {
                 <> {snsNotificationsEnabled !== null ? 
                 <div>
                   <StatusIndicator type={snsNotificationsEnabled === true ? "success" : "error"}>
-                    {snsNotificationsEnabled === true ? "Yes" : "No"}
+                    {snsNotificationsEnabled === true ? "Enabled" : "Disabled"}
                   </StatusIndicator>
                 </div>
                 :<Spinner /> 
@@ -307,7 +307,7 @@ function Settings(props) {
                 <> {slackNotificationsEnabled !== null ? 
                 <div>
                   <StatusIndicator type={slackNotificationsEnabled === true ? "success" : "error"}>
-                    {slackNotificationsEnabled === true ? "Yes" : "No"}
+                    {slackNotificationsEnabled === true ? "Enabled" : "Disabled"}
                   </StatusIndicator>
                 </div>
                 :<Spinner /> 
