@@ -29,9 +29,9 @@ function Settings(props) {
   const [slackToken, setSlackToken] = useState("");
   const [slackTokenError, setSlackTokenError] = useState("");
   const [sesSourceEmail, setSesSourceEmail] = useState(null);
-  const [sesSourceEmailError, setSesSourceEmailError] = useState(null);
+  const [sesSourceEmailError, setSesSourceEmailError] = useState("");
   const [sesSourceArn, setSesSourceArn] = useState(null);
-  const [sesSourceArnError, setSesSourceArnError] = useState(null);
+  const [sesSourceArnError, setSesSourceArnError] = useState("");
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
