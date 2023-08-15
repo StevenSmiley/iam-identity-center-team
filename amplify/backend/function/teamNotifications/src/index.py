@@ -271,13 +271,11 @@ def lambda_handler(event: dict, context):
         case "error":
             # Notify approvers and requester error
             slack_recipients = approvers + [requester]
-            # TODO: Include State Machine execution id, name, etc.
-            slack_message = f"Error handling AWS access for {requester}."
+            slack_message = f"Error handling AWS access for {requester}. Error details: {event.get('statusError')}"
             email_to_addresses = [ses_source_email]
             email_cc_addresses = approvers + [requester]
             subject = f"Error handling AWS access for {requester} to AWS account {account} - TEAM"
-            # TODO: Include State Machine execution id, name, etc.
-            email_message_html = f'<html><body><p>TEAM encountered an error handling AWS access for {requester}. Please review the Step Function logs to troubleshoot the error and ensure access is properly granted or revoked. Open <a href="{login_url}">TEAM</a> to view additional details.</p><p><b>Step Function Workflow Name:</b> TODO<br /><b>Step Function Execution Name:</b> TODO<br /><b>Step Function Execution Id:</b> TODO</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
+            email_message_html = f'<html><body><p>TEAM encountered an error handling AWS access for {requester}. Please review the Step Function logs to troubleshoot the error and ensure access is properly granted or revoked. Open <a href="{login_url}">TEAM</a> to view additional details.</p><p><b>Error Details:</b> {event.get("statusError")}<br /></p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
 
         case _:
             print(f"Request status unexpected, exiting: {request_status}")
