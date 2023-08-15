@@ -36,7 +36,7 @@ def remove_user_from_group(username, groupname):
         print(e.response['Error']['Message'])
 
 
-def get_identiy_store_id():
+def get_identity_store_id():
     client = boto3.client('sso-admin')
     try:
         response = client.list_instances()
@@ -45,7 +45,7 @@ def get_identiy_store_id():
         print(e.response['Error']['Message'])
 
 
-sso_instance = get_identiy_store_id()
+sso_instance = get_identity_store_id()
 
 
 def get_user(username):
