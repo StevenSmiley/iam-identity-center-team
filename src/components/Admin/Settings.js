@@ -484,7 +484,7 @@ function Settings(props) {
               <FormField
                 label="SNS notifications"
                 stretch
-                description="Send notifications via Amazon SNS. Create an SNS subscription to topic arn:aws:sns..."
+                description="Send notifications via Amazon SNS. Once enabled, create a subscription to the SNS topic in the TEAM account."
               >
                 <Toggle
                   onChange={({ detail }) => {
