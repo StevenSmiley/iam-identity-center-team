@@ -45,7 +45,6 @@ def send_sns_notification(notification_topic_arn, message, subject):
     try:
         sns_client.publish(
             TopicArn=notification_topic_arn,
-            MessageStructure="json",
             Message=message,
             Subject=subject,
         )
