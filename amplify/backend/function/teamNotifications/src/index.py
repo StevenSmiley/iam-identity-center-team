@@ -10,20 +10,6 @@ from dateutil import parser, tz
 
 session = boto3.Session()
 
-try:
-    dynamodb = boto3.resource("dynamodb")
-    settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
-    settings_table = dynamodb.Table(settings_table_name)
-    settings = settings_table.get_item(Key={"id": "settings"})
-    item_settings = settings.get("Item", {})
-    # TODO: What if this is changed but the function execution environment is reused?
-    slack_token = item_settings.get("slackToken", "")
-    if slack_token:
-        slack_client = WebClient(token=slack_token)
-except Exception as error:
-    print(f"Error retrieving Slack OAuth token, cannot continue: {error}")
-    exit
-
 
 def send_ses_notification(
     source_email, source_arn, subject, message_html, to_addresses, cc_addresses
@@ -78,6 +64,21 @@ def send_slack_notifications(
     justification="",
     ticket="",
 ):
+    try:
+        dynamodb = session.resource("dynamodb")
+        settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
+        settings_table = dynamodb.Table(settings_table_name)
+        settings = settings_table.get_item(Key={"id": "settings"})
+        item_settings = settings.get("Item", {})
+        slack_token = item_settings.get("slackToken", "")
+        if slack_token:
+            slack_client = WebClient(token=slack_token)
+    except Exception as error:
+        print(
+            f"Error retrieving Slack OAuth token, cannot send Slack notifications: {error}"
+        )
+        return
+
     parsed_date = parser.parse(request_start_time)
 
     for recipient in recipients:
@@ -162,10 +163,10 @@ def lambda_handler(event: dict, context):
     if not (
         (ses_notifications_enabled and ses_source_email)
         or (sns_notifications_enabled and notification_topic_arn)
-        or (slack_notifications_enabled and slack_client)
+        or (slack_notifications_enabled)
     ):
         # Notifications are disabled or configuration is invalid
-        exit
+        return
 
     request_status = event["status"]
     granted = (
@@ -217,7 +218,7 @@ def lambda_handler(event: dict, context):
             slack_recipients = [requester]
             slack_message = "Your AWS access request has expired."
             email_to_addresses = [requester]
-            email_cc_addresses = [approvers]
+            email_cc_addresses = approvers
             subject = f"Expired access request for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has expired, please open <a href="{login_url}">TEAM</a> to submit a new request.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
         case "ended":
@@ -225,7 +226,7 @@ def lambda_handler(event: dict, context):
             slack_recipients = [requester]
             slack_message = "Your AWS access session has ended."
             email_to_addresses = [requester]
-            email_cc_addresses = [approvers]
+            email_cc_addresses = approvers
             subject = f"AWS access session ended for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access session has ended, please open <a href="{login_url}">TEAM</a> to view session activity logs.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
 
@@ -234,7 +235,7 @@ def lambda_handler(event: dict, context):
             slack_recipients = [requester]
             slack_message = "Your AWS access session has started."
             email_to_addresses = [requester]
-            email_cc_addresses = [approvers]
+            email_cc_addresses = approvers
             subject = f"AWS access session started for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access session has started. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
 
@@ -245,7 +246,7 @@ def lambda_handler(event: dict, context):
                 f"Your AWS access request was approved by {event['approver']}."
             )
             email_to_addresses = [requester]
-            email_cc_addresses = [approvers]
+            email_cc_addresses = approvers
             subject = f"AWS access request approved for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has been approved by {event["approver"]}. You will receive a notification when the session has started. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
 
@@ -254,13 +255,13 @@ def lambda_handler(event: dict, context):
             slack_recipients = [requester]
             slack_message = "Your AWS access request was rejected."
             email_to_addresses = [requester]
-            email_cc_addresses = [approvers]
+            email_cc_addresses = approvers
             subject = f"AWS access request rejected for {requester} to AWS account {account} - TEAM"
             email_message_html = f'<html><body><p>Your AWS access request has been rejected. Open <a href="{login_url}">TEAM</a> to manage AWS access requests.</p><p><b>Account:</b> {account}<br /><b>Role:</b> {role}<br /><b>Start Time:</b> {request_start_time}<br /><b>Duration:</b> {duration_hours} hours<br /><b>Justification:</b> {justification}<br /><b>Ticket Number:</b> {ticket}<br /></p></body></html>'
 
         case "cancelled":
             # Notify approvers request cancelled
-            slack_recipients = [approvers]
+            slack_recipients = approvers
             slack_message = f"{requester} cancelled this AWS access request."
             email_to_addresses = approvers
             email_cc_addresses = [requester]
