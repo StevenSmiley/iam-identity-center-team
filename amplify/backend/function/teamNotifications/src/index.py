@@ -53,15 +53,15 @@ def send_sns_notification(notification_topic_arn, message, subject):
 
 
 def send_slack_notifications(
-    recipients: list,
+    recipients,
     message,
     login_url,
     request_start_time,
     role,
     account,
     duration_hours,
-    justification="",
-    ticket="",
+    justification,
+    ticket,
 ):
     try:
         dynamodb = session.resource("dynamodb")
