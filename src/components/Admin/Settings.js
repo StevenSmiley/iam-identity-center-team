@@ -90,6 +90,7 @@ function Settings(props) {
   }, []);
 
   function views() {
+      getGroups();
       setVisible(false);
       setSubmitLoading(false);
       getSettings();
@@ -185,7 +186,6 @@ function Settings(props) {
   }
 
   function getSettings(){
-    getGroups()
     getSetting("settings").then((data) => {
       if (data !== null) {
         setItem(data);
@@ -200,8 +200,8 @@ function Settings(props) {
         setSesSourceEmail(data.sesSourceEmail);
         setSesSourceArn(data.sesSourceArn);
         setSlackToken(data.slackToken);
-        setTeamAdminGroup(item.teamAdminGroup);
-        setTeamAuditorGroup(item.teamAuditorGroup);
+        setTeamAdminGroup(data.teamAdminGroup);
+        setTeamAuditorGroup(data.teamAuditorGroup);
       } else {
         setDuration("9");
         setExpiry("3");
