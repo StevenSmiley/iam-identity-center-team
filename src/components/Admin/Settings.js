@@ -9,11 +9,12 @@ import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import ColumnLayout from "@awsui/components-react/column-layout";
 import Button from "@awsui/components-react/button";
+import Select from "@awsui/components-react/select";
 import { ContentLayout, Modal, Toggle, Form, FormField, Input, Spinner } from "@awsui/components-react";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import { Divider } from "antd";
 import "../../index.css";
-import { getSetting, createSetting, updateSetting } from "../Shared/RequestService";
+import { getSetting, createSetting, updateSetting, fetchIdCGroups } from "../Shared/RequestService";
 
 function Settings(props) {
   const [duration, setDuration] = useState(null);
@@ -35,6 +36,18 @@ function Settings(props) {
   const [visible, setVisible] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [groupStatus, setGroupStatus] = useState("finished");
+  const [teamAdminGroup, setTeamAdminGroup] = useState("");
+  const [teamAdminGroupError, setTeamAdminGroupError] = useState("");
+
+  function getGroups() {
+    setGroupStatus("loading");
+    fetchIdCGroups().then((data) => {
+      setGroups(data);
+      setGroupStatus("finished");
+    });
+  }
 
   const slackAppManifest = {
     display_information: {
@@ -79,7 +92,8 @@ function Settings(props) {
   function views() {
       setVisible(false);
       setSubmitLoading(false);
-      getSettings()
+      getSettings();
+      getGroups()
     };
   
     async function validate() {
@@ -360,11 +374,33 @@ function Settings(props) {
                 <Box variant="small">Controls TEAM admins and auditors</Box>
                 <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
+              <FormField
+                label="TEAM Admin Group"
+                stretch
+                description="Group of users allowed to modify eligibility and approver policies"
+                errorText={teamAdminGroupError}
+              >
+                <Select
+                  statusType={groupStatus}
+                  placeholder="Select Group"
+                  loadingText="Loading Groups"
+                  filteringType="auto"
+                  empty="No groups found"
+                  options={groups.map((group) => ({
+                    label: group.DisplayName,
+                    value: group.GroupId,
+                    description: group.GroupId,
+                  }))}
+                  selectedOption={teamAdminGroup}
+                  onChange={(event) => {
+                    setTeamAdminGroupError();
+                    setTeamAdminGroup(event.detail.selectedOption);
+                  }}
+                  selectedAriaLabel="selected"
+                />
+              </FormField>
               <div>
-                TODO: Display TEAM Admin group
-              </div>
-              <div>
-                TODO: Display TEAM Auditor group
+                TODO: TEAM Auditor group picker
               </div>
               <div>
                 <Box variant="h3">Request settings</Box>
