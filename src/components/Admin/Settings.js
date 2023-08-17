@@ -393,10 +393,10 @@ function Settings(props) {
                     value: group.GroupId,
                     description: group.GroupId,
                   }))}
-                  selectedOption={teamAdminGroup}
-                  onChange={(event) => {
+                  selectedOption={{label: teamAdminGroup}}
+                  onChange={(detail) => {
                     setTeamAdminGroupError();
-                    setTeamAdminGroup(event.detail.selectedOption.label);
+                    setTeamAdminGroup(detail.selectedOption.label);
                   }}
                   selectedAriaLabel="selected"
                 />
@@ -418,10 +418,10 @@ function Settings(props) {
                     value: group.GroupId,
                     description: group.GroupId,
                   }))}
-                  selectedOption={teamAuditorGroup}
-                  onChange={(event) => {
+                  selectedOption={{label: teamAuditorGroup}}
+                  onChange={(detail) => {
                     setTeamAuditorGroupError();
-                    setTeamAuditorGroup(event.detail.selectedOption.label);
+                    setTeamAuditorGroup(detail.selectedOption.label);
                   }}
                   selectedAriaLabel="selected"
                 />
