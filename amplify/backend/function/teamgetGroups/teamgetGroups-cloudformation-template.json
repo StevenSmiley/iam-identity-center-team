@@ -26,12 +26,6 @@
     "functionteamapplicationboto3layerArn": {
       "Type": "String",
       "Default": "functionteamapplicationboto3layerArn"
-    },
-    "teamAdminGroup": {
-      "Type": "String"
-    },
-    "teamAuditorGroup": {
-      "Type": "String"
     }
   },
   "Conditions": {
