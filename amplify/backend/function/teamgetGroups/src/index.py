@@ -25,10 +25,10 @@ def get_team_groups():
     try:
         settings = get_settings()
         item_settings = settings.get("Item", {})
-        team_admin_group = item_settings.get("teamAdminGroup", team_admin_group)
-        team_auditor_group = item_settings.get("teamAuditorGroup", team_auditor_group)
+        team_admin_group = item_settings.get("teamAdminGroup", os.getenv("TEAM_ADMIN_GROUP"))
+        team_auditor_group = item_settings.get("teamAuditorGroup", os.getenv("TEAM_AUDITOR_GROUP"))
     except Exception as e:
-        print("Error retrieving TEAM settings from database: {e}")
+        print(f"Error retrieving TEAM settings from database: {e}")
     return team_admin_group, team_auditor_group
 
 def add_user_to_group(username, groupname):
