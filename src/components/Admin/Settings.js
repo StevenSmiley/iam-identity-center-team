@@ -294,14 +294,6 @@ function Settings(props) {
             </SpaceBetween>
             <SpaceBetween size="l">
               <div>
-                <Box variant="h3">Workflow settings</Box>
-                <Box variant="small">Request approval workflow settings</Box>
-                <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
-              </div>
-              
-            </SpaceBetween>
-            <SpaceBetween size="l">
-              <div>
                 <Box variant="h3">Notification settings</Box>
                 <Box variant="small">Notification settings for request and approval events</Box>
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
