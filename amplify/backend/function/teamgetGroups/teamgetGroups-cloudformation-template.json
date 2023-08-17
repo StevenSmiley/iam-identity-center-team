@@ -26,6 +26,12 @@
     "functionteamapplicationboto3layerArn": {
       "Type": "String",
       "Default": "functionteamapplicationboto3layerArn"
+    },
+    "teamAdminGroup": {
+      "Type": "String"
+    },
+    "teamAuditorGroup": {
+      "Type": "String"
     }
   },
   "Conditions": {
@@ -94,6 +100,12 @@
               "Fn::ImportValue": {
                 "Fn::Sub": "${apiteamGraphQLAPIIdOutput}:GetAtt:SettingsTable:Name"
               }
+            },
+            "TEAM_ADMIN_GROUP": {
+              "Ref": "teamAdminGroup"
+            },
+            "TEAM_AUDITOR_GROUP": {
+              "Ref": "teamAuditorGroup"
             }
           }
         },

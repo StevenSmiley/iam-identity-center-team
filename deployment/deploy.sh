@@ -33,6 +33,8 @@ then
   --stack-name TEAM-IDC-APP \
   --parameter-overrides \
     Login=$IDC_LOGIN_URL \
+    teamAdminGroup="$TEAM_ADMIN_GROUP" \
+    teamAuditGroup="$TEAM_AUDITOR_GROUP" \
     tags="$TAGS" \
   --tags $TAGS \
   --no-fail-on-empty-changeset --capabilities CAPABILITY_NAMED_IAM
@@ -41,6 +43,8 @@ else
   --stack-name TEAM-IDC-APP \
   --parameter-overrides \
     Login=$IDC_LOGIN_URL \
+    teamAdminGroup="$TEAM_ADMIN_GROUP" \
+    teamAuditGroup="$TEAM_AUDITOR_GROUP" \
     tags="$TAGS" \
   --no-fail-on-empty-changeset --capabilities CAPABILITY_NAMED_IAM
 fi
