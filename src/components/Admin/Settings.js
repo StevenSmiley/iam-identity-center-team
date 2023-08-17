@@ -40,6 +40,8 @@ function Settings(props) {
   const [groupStatus, setGroupStatus] = useState("finished");
   const [teamAdminGroup, setTeamAdminGroup] = useState("");
   const [teamAdminGroupError, setTeamAdminGroupError] = useState("");
+  const [teamAuditorGroup, setTeamAuditorGroup] = useState("");
+  const [teamAuditorGroupError, setTeamAuditorGroupError] = useState("");
 
   function getGroups() {
     setGroupStatus("loading");
@@ -146,6 +148,8 @@ function Settings(props) {
     setSesSourceEmail(item.sesSourceEmail);
     setSesSourceArn(item.sesSourceArn);
     setSlackToken(item.slackToken);
+    setTeamAdminGroup(item.teamAdminGroup);
+    setTeamAuditorGroup(item.teamAuditorGroup);
     setVisible(false);
   }
   async function handleSubmit() {
@@ -164,6 +168,8 @@ function Settings(props) {
         sesSourceEmail,
         sesSourceArn,
         slackToken,
+        teamAdminGroup,
+        teamAuditorGroup
       };
       const action = item === null ? createSetting : updateSetting;
       action(data).then(() => {
@@ -196,6 +202,8 @@ function Settings(props) {
         setSesSourceEmail(data.sesSourceEmail);
         setSesSourceArn(data.sesSourceArn);
         setSlackToken(data.slackToken);
+        setTeamAdminGroup(item.teamAdminGroup);
+        setTeamAuditorGroup(item.teamAuditorGroup);
       } else {
         setDuration("9");
         setExpiry("3");
@@ -208,6 +216,8 @@ function Settings(props) {
         setSesSourceEmail("");
         setSesSourceArn("");
         setSlackToken("");
+        setTeamAdminGroup("");
+        setTeamAuditorGroup("");
       }
     });
   }
@@ -238,10 +248,10 @@ function Settings(props) {
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                TODO: Display TEAM Admin group
+                TODO: Display TEAM Admin group. {teamAdminGroup}
               </div>
               <div>
-                TODO: Display TEAM Auditor group
+                TODO: Display TEAM Auditor group. {teamAuditorGroup}
               </div>
             </SpaceBetween>
             <SpaceBetween size="l">
