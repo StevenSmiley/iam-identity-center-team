@@ -39,9 +39,7 @@ function Settings(props) {
   const [groups, setGroups] = useState([]);
   const [groupStatus, setGroupStatus] = useState("");
   const [teamAdminGroup, setTeamAdminGroup] = useState("");
-  const [teamAdminGroupError, setTeamAdminGroupError] = useState("");
   const [teamAuditorGroup, setTeamAuditorGroup] = useState("");
-  const [teamAuditorGroupError, setTeamAuditorGroupError] = useState("");
 
   function getGroups() {
     setGroupStatus("loading");
@@ -382,7 +380,6 @@ function Settings(props) {
                 label="TEAM Admin Group"
                 stretch
                 description="Group of users allowed to modify eligibility and approver policies"
-                errorText={teamAdminGroupError}
               >
                 <Select
                   statusType={groupStatus}
@@ -397,7 +394,6 @@ function Settings(props) {
                   }))}
                   selectedOption={{label: teamAdminGroup}}
                   onChange={({detail}) => {
-                    setTeamAdminGroupError();
                     setTeamAdminGroup(detail.selectedOption.label);
                   }}
                   selectedAriaLabel="selected"
@@ -407,7 +403,6 @@ function Settings(props) {
                 label="TEAM Auditor Group"
                 stretch
                 description="Group of users allowed to audit access request in TEAM"
-                errorText={teamAuditorGroupError}
               >
                 <Select
                   statusType={groupStatus}
@@ -422,7 +417,6 @@ function Settings(props) {
                   }))}
                   selectedOption={{label: teamAuditorGroup}}
                   onChange={({detail}) => {
-                    setTeamAuditorGroupError();
                     setTeamAuditorGroup(detail.selectedOption.label);
                   }}
                   selectedAriaLabel="selected"
