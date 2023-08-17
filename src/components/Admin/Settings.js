@@ -37,7 +37,7 @@ function Settings(props) {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [item, setItem] = useState(null);
   const [groups, setGroups] = useState([]);
-  const [groupStatus, setGroupStatus] = useState("finished");
+  const [groupStatus, setGroupStatus] = useState("");
   const [teamAdminGroup, setTeamAdminGroup] = useState("");
   const [teamAdminGroupError, setTeamAdminGroupError] = useState("");
   const [teamAuditorGroup, setTeamAuditorGroup] = useState("");
@@ -396,14 +396,36 @@ function Settings(props) {
                   selectedOption={teamAdminGroup}
                   onChange={(event) => {
                     setTeamAdminGroupError();
-                    setTeamAdminGroup(event.detail.selectedOption);
+                    setTeamAdminGroup(event.detail.selectedOption.label);
                   }}
                   selectedAriaLabel="selected"
                 />
               </FormField>
-              <div>
-                TODO: TEAM Auditor group picker
-              </div>
+              <FormField
+                label="TEAM Auditor Group"
+                stretch
+                description="Group of users allowed to audit access request in TEAM"
+                errorText={teamAuditorGroupError}
+              >
+                <Select
+                  statusType={groupStatus}
+                  placeholder="Select Group"
+                  loadingText="Loading Groups"
+                  filteringType="auto"
+                  empty="No groups found"
+                  options={groups.map((group) => ({
+                    label: group.DisplayName,
+                    value: group.GroupId,
+                    description: group.GroupId,
+                  }))}
+                  selectedOption={teamAuditorGroup}
+                  onChange={(event) => {
+                    setTeamAuditorGroupError();
+                    setTeamAuditorGroup(event.detail.selectedOption.label);
+                  }}
+                  selectedAriaLabel="selected"
+                />
+              </FormField>
               <div>
                 <Box variant="h3">Request settings</Box>
                 <Box variant="small">Controls access request requirements</Box>
