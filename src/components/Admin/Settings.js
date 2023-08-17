@@ -241,16 +241,16 @@ function Settings(props) {
           <ColumnLayout columns={3} variant="text-grid">
             <SpaceBetween size="l">
               <div>
-                <Box variant="h3">TEAM Permissions</Box>
+                <Box variant="h3">TEAM permissions</Box>
                 <Box variant="small">Controls TEAM admins and auditors</Box>
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                <Box variant="awsui-key-label">TEAM Admin group</Box>
+                <Box variant="awsui-key-label">TEAM admin group</Box>
                 <> {teamAdminGroup !== null ?  <div>{teamAdminGroup}</div> : <Spinner />  }</>
               </div>
               <div>
-                <Box variant="awsui-key-label">TEAM Auditor group</Box>
+                <Box variant="awsui-key-label">TEAM auditor group</Box>
                 <> {teamAuditorGroup !== null ?  <div>{teamAuditorGroup}</div> : <Spinner />  }</>
               </div>
             </SpaceBetween>
@@ -372,12 +372,12 @@ function Settings(props) {
           >
             <SpaceBetween direction="vertical" size="l">
               <div>
-                <Box variant="h3">TEAM Permissions</Box>
+                <Box variant="h3">TEAM permissions</Box>
                 <Box variant="small">Controls TEAM admins and auditors</Box>
                 <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
               <FormField
-                label="TEAM Admin Group"
+                label="TEAM admin Group"
                 stretch
                 description="Group of users allowed to modify eligibility and approver policies"
               >
@@ -400,7 +400,7 @@ function Settings(props) {
                 />
               </FormField>
               <FormField
-                label="TEAM Auditor Group"
+                label="TEAM auditor Group"
                 stretch
                 description="Group of users allowed to audit access request in TEAM"
               >
