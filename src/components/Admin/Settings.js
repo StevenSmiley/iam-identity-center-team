@@ -95,7 +95,6 @@ function Settings(props) {
       setVisible(false);
       setSubmitLoading(false);
       getSettings();
-      getGroups()
     };
   
     async function validate() {
@@ -188,6 +187,7 @@ function Settings(props) {
   }
 
   function getSettings(){
+    getGroups()
     getSetting("settings").then((data) => {
       if (data !== null) {
         setItem(data);
