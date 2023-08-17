@@ -396,7 +396,7 @@ function Settings(props) {
                     description: group.GroupId,
                   }))}
                   selectedOption={{label: teamAdminGroup}}
-                  onChange={(detail) => {
+                  onChange={({detail}) => {
                     setTeamAdminGroupError();
                     setTeamAdminGroup(detail.selectedOption.label);
                   }}
@@ -421,7 +421,7 @@ function Settings(props) {
                     description: group.GroupId,
                   }))}
                   selectedOption={{label: teamAuditorGroup}}
-                  onChange={(detail) => {
+                  onChange={({detail}) => {
                     setTeamAuditorGroupError();
                     setTeamAuditorGroup(detail.selectedOption.label);
                   }}
