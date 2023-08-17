@@ -121,14 +121,14 @@ def list_idc_group_membership(userId):
 
 
 def handler(event, context):
-    team_admin_group_name, team_auditor_group_name = get_team_groups()
+    team_admin_group, team_auditor_group = get_team_groups()
     print(event)
     user = event["identity"]["username"]
     # Strip idc prefix
     username = user.removeprefix("idc_")
     userId = get_user(username)
-    admin = get_group(team_admin_group_name)
-    auditor = get_group(team_auditor_group_name)
+    admin = get_group(team_admin_group)
+    auditor = get_group(team_auditor_group)
     groups = []
     groupIds = []
 

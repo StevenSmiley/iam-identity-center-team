@@ -53,6 +53,23 @@ async function update_react_parameters() {
   );
 }
 
+async function update_groups_parameters() {
+  console.log(`updating teamgetgroups lambda parameters"...`);
+
+  const groupsParametersJsonPath = path.resolve(
+    `./amplify/backend/function/teamgetGroups/parameters.json`
+  );
+  const groupsParametersJson = require(groupsParametersJsonPath);
+
+  groupsParametersJson.teamAdminGroup = TEAM_ADMIN_GROUP;
+  groupsParametersJson.teamAuditorGroup = TEAM_AUDITOR_GROUP;
+
+  fs.writeFileSync(
+    groupsParametersJsonPath,
+    JSON.stringify(groupsParametersJson, null, 4)
+  );
+}
+
 async function update_router_parameters() {
   console.log(`updating teamRouter lambda parameters"...`);
 
@@ -85,24 +102,6 @@ async function update_tag_parameters() {
   }) : [];
 
   fs.writeFileSync(tagsParametersJsonPath, JSON.stringify(tagsArray, null, 2));
-}
-
-
-async function update_groups_parameters() {
-  console.log(`updating teamgetgroups lambda parameters"...`);
-
-  const groupsParametersJsonPath = path.resolve(
-    `./amplify/backend/function/teamgetGroups/parameters.json`
-  );
-  const groupsParametersJson = require(groupsParametersJsonPath);
-
-  groupsParametersJson.teamAdminGroup = TEAM_ADMIN_GROUP;
-  groupsParametersJson.teamAuditorGroup = TEAM_AUDITOR_GROUP;
-
-  fs.writeFileSync(
-    groupsParametersJsonPath,
-    JSON.stringify(groupsParametersJson, null, 4)
-  );
 }
 
 update_auth_parameters();
