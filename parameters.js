@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { AWS_APP_ID, AWS_BRANCH, SSO_LOGIN, TEAM_ADMIN_GROUP, TEAM_AUDITOR_GROUP, TAGS } = process.env;
+const { AWS_APP_ID, AWS_BRANCH, SSO_LOGIN, TAGS } = process.env;
 
 async function update_auth_parameters() {
   console.log(`updating amplify config for branch "${AWS_BRANCH}"...`);
@@ -53,23 +53,6 @@ async function update_react_parameters() {
   );
 }
 
-async function update_groups_parameters() {
-  console.log(`updating teamgetgroups lambda parameters"...`);
-
-  const groupsParametersJsonPath = path.resolve(
-    `./amplify/backend/function/teamgetGroups/parameters.json`
-  );
-  const groupsParametersJson = require(groupsParametersJsonPath);
-
-  groupsParametersJson.teamAdminGroup = TEAM_ADMIN_GROUP;
-  groupsParametersJson.teamAuditorGroup = TEAM_AUDITOR_GROUP;
-
-  fs.writeFileSync(
-    groupsParametersJsonPath,
-    JSON.stringify(groupsParametersJson, null, 4)
-  );
-}
-
 async function update_router_parameters() {
   console.log(`updating teamRouter lambda parameters"...`);
 
@@ -108,6 +91,5 @@ async function update_tag_parameters() {
 
 update_auth_parameters();
 update_react_parameters();
-update_groups_parameters();
 update_router_parameters()
 update_tag_parameters();

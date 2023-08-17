@@ -7,8 +7,28 @@ from botocore.exceptions import ClientError
 import boto3
 
 user_pool_id = os.getenv("AUTH_AWSPIM06DBB7FC_USERPOOLID")
-team_admin_group = os.getenv("TEAM_ADMIN_GROUP")
-team_auditor_group = os.getenv("TEAM_AUDITOR_GROUP")
+settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
+dynamodb = boto3.resource('dynamodb')
+settings_table = dynamodb.Table(settings_table_name)
+
+def get_settings():
+    response = settings_table.get_item(
+        Key={
+            'id': 'settings'
+        }
+    )
+    return response
+
+def get_team_groups():
+    try:
+        settings = get_settings()
+        item_settings = settings.get("Item", {})
+        team_admin_group = item_settings.get("team_admin_group", "")
+        team_auditor_group = item_settings.get("team_auditor_group", "")
+    except Exception as e:
+        print("Error retrieving TEAM settings: {e}")
+        exit
+    return team_admin_group, team_auditor_group
 
 def add_user_to_group(username, groupname):
     client = boto3.client('cognito-idp')
@@ -100,13 +120,14 @@ def list_idc_group_membership(userId):
 
 
 def handler(event, context):
+    team_admin_group_name, team_auditor_group_name = get_team_groups()
     print(event)
     user = event["identity"]["username"]
     # Strip idc prefix
     username = user.removeprefix("idc_")
     userId = get_user(username)
-    admin = get_group(team_admin_group)
-    auditor = get_group(team_auditor_group)
+    admin = get_group(team_admin_group_name)
+    auditor = get_group(team_auditor_group_name)
     groups = []
     groupIds = []
 

@@ -216,15 +216,51 @@ function Settings(props) {
             </Header>
           }
         >
-          <ColumnLayout columns={4} variant="text-grid">
+          <ColumnLayout columns={3} variant="text-grid">
             <SpaceBetween size="l">
               <div>
-                <Box variant="h3">Timer settings</Box>
-                <Box variant="small">Request Form timer settings</Box>
+                <Box variant="h3">TEAM Permissions</Box>
+                <Box variant="small">Controls TEAM admins and auditors</Box>
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                <Box variant="awsui-key-label">Max request duration</Box>
+                TODO: Display TEAM Admin group
+              </div>
+              <div>
+                TODO: Display TEAM Auditor group
+              </div>
+            </SpaceBetween>
+            <SpaceBetween size="l">
+              <div>
+                <Box variant="h3">Request settings</Box>
+                <Box variant="small">Controls access request requirements</Box>
+                <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Approval required</Box>
+                <> {approval !== null ? 
+                <div>
+                  <StatusIndicator type={approval === true ? "success" : "stopped"}>
+                    {approval === true ? "Required" : "Not required"}
+                  </StatusIndicator>
+                </div>
+                :<Spinner /> 
+                }</>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Require justification</Box>
+                <> {comments !== null ? <div><StatusIndicator type={comments === true ? "success" : "stopped"}>
+                    {comments === true ? "Required" : "Not required"}
+                  </StatusIndicator></div> : <Spinner /> }</>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Require ticket number</Box>
+                <> {ticketNo !== null ? <div><StatusIndicator type={ticketNo === true ? "success" : "stopped"}>
+                    {ticketNo === true ? "Required" : "Not required"}
+                  </StatusIndicator></div> : <Spinner /> }</>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Maximum request duration</Box>
                 <> {duration !== null ?  <div>{duration} hours</div> : <Spinner />  }</>
               </div>
               <div>
@@ -234,36 +270,11 @@ function Settings(props) {
             </SpaceBetween>
             <SpaceBetween size="l">
               <div>
-                <Box variant="h3">Mandatory fields</Box>
-                <Box variant="small">Request Form mandatory fields</Box>
-                <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
-              </div>
-              <div>
-                <Box variant="awsui-key-label">Comments</Box>
-                <> {comments !== null ? <div>{comments === true ? "On" : "Off"}</div> : <Spinner /> }</>
-              </div>
-              <div>
-                <Box variant="awsui-key-label">Ticket number</Box>
-                <> {ticketNo !== null ? <div>{ticketNo === true ? "On" : "Off"}</div> : <Spinner /> }</>
-              </div>
-            </SpaceBetween>
-            <SpaceBetween size="l">
-              <div>
                 <Box variant="h3">Workflow settings</Box>
                 <Box variant="small">Request approval workflow settings</Box>
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
-              <div>
-                <Box variant="awsui-key-label">Approval required</Box>
-                <> {approval !== null ? 
-                <div>
-                  <StatusIndicator type={approval === true ? "success" : "error"}>
-                    {approval === true ? "Yes" : "No"}
-                  </StatusIndicator>
-                </div>
-                :<Spinner /> 
-                }</>
-              </div>
+              
             </SpaceBetween>
             <SpaceBetween size="l">
               <div>
@@ -275,7 +286,7 @@ function Settings(props) {
                 <Box variant="awsui-key-label">Email notifications</Box>
                 <> {sesNotificationsEnabled !== null ? 
                 <div>
-                  <StatusIndicator type={sesNotificationsEnabled === true ? "success" : "error"}>
+                  <StatusIndicator type={sesNotificationsEnabled === true ? "success" : "stopped"}>
                     {sesNotificationsEnabled === true ? sesSourceEmail : "Disabled"}
                   </StatusIndicator>
                 </div>
@@ -295,7 +306,7 @@ function Settings(props) {
                 <Box variant="awsui-key-label">SNS notifications</Box>
                 <> {snsNotificationsEnabled !== null ? 
                 <div>
-                  <StatusIndicator type={snsNotificationsEnabled === true ? "success" : "error"}>
+                  <StatusIndicator type={snsNotificationsEnabled === true ? "success" : "stopped"}>
                     {snsNotificationsEnabled === true ? "Enabled" : "Disabled"}
                   </StatusIndicator>
                 </div>
@@ -306,7 +317,7 @@ function Settings(props) {
                 <Box variant="awsui-key-label">Slack notifications</Box>
                 <> {slackNotificationsEnabled !== null ? 
                 <div>
-                  <StatusIndicator type={slackNotificationsEnabled === true ? "success" : "error"}>
+                  <StatusIndicator type={slackNotificationsEnabled === true ? "success" : "stopped"}>
                     {slackNotificationsEnabled === true ? "Enabled" : "Disabled"}
                   </StatusIndicator>
                 </div>
@@ -345,12 +356,60 @@ function Settings(props) {
           >
             <SpaceBetween direction="vertical" size="l">
               <div>
-                <Box variant="h3">Timer settings</Box>
-                <Box variant="small">Request Form timer settings</Box>
+                <Box variant="h3">TEAM Permissions</Box>
+                <Box variant="small">Controls TEAM admins and auditors</Box>
                 <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
+              <div>
+                TODO: Display TEAM Admin group
+              </div>
+              <div>
+                TODO: Display TEAM Auditor group
+              </div>
+              <div>
+                <Box variant="h3">Request settings</Box>
+                <Box variant="small">Controls access request requirements</Box>
+                <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
+              </div>
+              <div>
               <FormField
-                label="Max request duration"
+                label="Require approval of all requests"
+                stretch
+                description="Turn on/off approval workflow for all elevated access request"
+              >
+                <Toggle
+                  onChange={({ detail }) => setApproval(detail.checked)}
+                  checked={approval}
+                >
+                  Approval required
+                </Toggle>
+              </FormField>
+              <FormField
+                label="Require justification for all requests"
+                stretch
+                description="Determines if justification field is mandatory"
+              >
+                <Toggle
+                  onChange={({ detail }) => setComments(detail.checked)}
+                  checked={comments}
+                >
+                  Comments
+                </Toggle>
+              </FormField>
+              <FormField
+                label="Require ticket number for all requests"
+                stretch
+                description="Determines if ticket number field is mandatory"
+              >
+                <Toggle
+                  onChange={({ detail }) => setTicketNo(detail.checked)}
+                  checked={ticketNo}
+                >
+                  Ticket number
+                </Toggle>
+              </FormField>
+              <FormField
+                label="Maximum request duration"
                 stretch
                 description="Default maximum request duration in hours"
                 errorText={durationError}
@@ -379,52 +438,7 @@ function Settings(props) {
                   type="number"
                 />
               </FormField>
-              <div>
-                <Box variant="h3">Mandatory fields</Box>
-                <Box variant="small">Request Form mandatory fields</Box>
-                <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
               </div>
-              <FormField
-                label="Comments"
-                stretch
-                description="Determines if comment field is mandatory"
-              >
-                <Toggle
-                  onChange={({ detail }) => setComments(detail.checked)}
-                  checked={comments}
-                >
-                  Comments
-                </Toggle>
-              </FormField>
-              <FormField
-                label="Ticket number"
-                stretch
-                description="Determines if ticket number field is mandatory"
-              >
-                <Toggle
-                  onChange={({ detail }) => setTicketNo(detail.checked)}
-                  checked={ticketNo}
-                >
-                  Ticket number
-                </Toggle>
-              </FormField>
-              <div>
-                <Box variant="h3">Workflow settings</Box>
-                <Box variant="small">Request approval workflow settings</Box>
-                <Divider style={{ marginBottom: "1px", marginTop: "7px" }} />
-              </div>
-              <FormField
-                label="Approval required"
-                stretch
-                description="Turn on/off approval workflow for all elevated access request"
-              >
-                <Toggle
-                  onChange={({ detail }) => setApproval(detail.checked)}
-                  checked={approval}
-                >
-                  Approval required
-                </Toggle>
-              </FormField>
               <div>
                 <Box variant="h3">Notification settings</Box>
                 <Box variant="small">Notification settings for request and approval events</Box>
