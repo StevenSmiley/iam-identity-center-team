@@ -444,6 +444,7 @@ function Settings(props) {
                   Approval required
                 </Toggle>
               </FormField>
+              <br />
               <FormField
                 label="Require justification for all requests"
                 stretch
@@ -456,6 +457,7 @@ function Settings(props) {
                   Comments
                 </Toggle>
               </FormField>
+              <br />
               <FormField
                 label="Require ticket number for all requests"
                 stretch
@@ -468,6 +470,7 @@ function Settings(props) {
                   Ticket number
                 </Toggle>
               </FormField>
+              <br />
               <FormField
                 label="Maximum request duration"
                 stretch
@@ -483,6 +486,7 @@ function Settings(props) {
                   type="number"
                 />
               </FormField>
+              <br />
               <FormField
                 label="Request expiry timeout"
                 stretch
