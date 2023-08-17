@@ -104,6 +104,8 @@ async function update_tag_parameters() {
   fs.writeFileSync(tagsParametersJsonPath, JSON.stringify(tagsArray, null, 2));
 }
 
+
+
 update_auth_parameters();
 update_react_parameters();
 update_groups_parameters();
