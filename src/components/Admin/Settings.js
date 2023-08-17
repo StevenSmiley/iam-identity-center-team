@@ -248,10 +248,12 @@ function Settings(props) {
                 <Divider style={{ marginBottom: "7px", marginTop: "7px" }} />
               </div>
               <div>
-                TODO: Display TEAM Admin group. {teamAdminGroup}
+                <Box variant="awsui-key-label">TEAM Admin group</Box>
+                <> {teamAdminGroup !== null ?  <div>{teamAdminGroup}</div> : <Spinner />  }</>
               </div>
               <div>
-                TODO: Display TEAM Auditor group. {teamAuditorGroup}
+                <Box variant="awsui-key-label">TEAM Auditor group</Box>
+                <> {teamAuditorGroup !== null ?  <div>{teamAuditorGroup}</div> : <Spinner />  }</>
               </div>
             </SpaceBetween>
             <SpaceBetween size="l">
